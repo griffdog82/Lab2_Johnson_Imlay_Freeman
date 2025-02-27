@@ -1,0 +1,24 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Grants.GrantDetailsModel
+@{
+    ViewData["Title"] = "Grant Details";
+}
+
+<h2>Grant Details</h2>
+
+@if (Model.GrantDetails != null)
+{
+    <div><strong>Grant Name:</strong> @Model.GrantDetails.GrantName</div>
+    <div><strong>Category:</strong> @Model.GrantDetails.Category</div>
+    <div><strong>Funding Source:</strong> @Model.GrantDetails.FundingSource</div>
+    <div><strong>Submission Date:</strong> @Model.GrantDetails.SubmissionDate.ToString("yyyy-MM-dd")</div>
+    <div><strong>Award Date:</strong> @(Model.GrantDetails.AwardDate.HasValue ? Model.GrantDetails.AwardDate.Value.ToString("yyyy-MM-dd") : "N/A")</div>
+    <div><strong>Amount:</strong> @Model.GrantDetails.Amount</div>
+    <div><strong>Lead Faculty ID:</strong> @Model.GrantDetails.LeadFacultyID</div>
+    <div><strong>Business Partner ID:</strong> @(string.IsNullOrEmpty(Model.GrantDetails.BusinessPartnerID) ? "N/A" : Model.GrantDetails.BusinessPartnerID)</div>
+    <div><strong>Status:</strong> @Model.GrantDetails.Status</div>
+}
+else
+{
+    <p>No grant details found.</p>
+}

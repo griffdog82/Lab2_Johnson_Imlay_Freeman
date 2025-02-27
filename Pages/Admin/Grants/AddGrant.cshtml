@@ -1,0 +1,90 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.AddGrantModel
+
+<h2>Add Grant</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label for="grantName">Grant Name</label>
+        <input type="text" class="form-control" id="grantName" name="GrantName" asp-for="Grant.GrantName" />
+    </div>
+
+    <div class="form-group">
+        <label for="category">Category</label>
+        <input type="text" class="form-control" id="category" name="Category" asp-for="Grant.Category" />
+    </div>
+
+    <div class="form-group">
+        <label for="fundingSource">Funding Source</label>
+        <select class="form-control" id="fundingSource" name="FundingSource" asp-for="Grant.FundingSource">
+            <option value="">-- Select Funding Source --</option>
+            @foreach (var partner in Model.BusinessPartners)
+            {
+                <option value="@partner.Name">@partner.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="submissionDate">Submission Date</label>
+        <input type="date" class="form-control" id="submissionDate" name="SubmissionDate" asp-for="Grant.SubmissionDate" />
+    </div>
+
+    <div class="form-group">
+        <label for="awardDate">Award Date</label>
+        <input type="date" class="form-control" id="awardDate" name="AwardDate" asp-for="Grant.AwardDate" />
+    </div>
+
+    <div class="form-group">
+        <label for="amount">Amount</label>
+        <input type="number" class="form-control" id="amount" name="Amount" asp-for="Grant.Amount" />
+    </div>
+
+    <div class="form-group">
+        <label for="status">Status</label>
+        <select class="form-control" id="status" name="Status" asp-for="Grant.Status">
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="leadFacultyID">Lead Faculty</label>
+        <select class="form-control" id="leadFacultyID" name="LeadFacultyID" asp-for="Grant.LeadFacultyID">
+            <option value="">-- Select Lead Faculty --</option>
+            @foreach (var faculty in Model.FacultyMembers)
+            {
+                <option value="@faculty.UserID">@faculty.FullName</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Grant</button>
+    <button type="button" class="btn btn-secondary" onclick="populateTestData()">Populate</button>
+    <button type="button" class="btn btn-danger" onclick="clearFields()">Clear</button>
+</form>
+
+<script>
+    function populateTestData() {
+        document.getElementById("grantName").value = "Sample Grant Name";
+        document.getElementById("category").value = "Education";
+        document.getElementById("fundingSource").value = "Government";
+        document.getElementById("submissionDate").value = "2024-02-20";
+        document.getElementById("awardDate").value = "2024-03-01";
+        document.getElementById("amount").value = "50000";
+        document.getElementById("status").value = "Pending";
+        document.getElementById("leadFacultyID").value = "1"; // Sample Lead Faculty
+    }
+
+    function clearFields() {
+        document.getElementById("grantName").value = "";
+        document.getElementById("category").value = "";
+        document.getElementById("fundingSource").value = "";
+        document.getElementById("submissionDate").value = "";
+        document.getElementById("awardDate").value = "";
+        document.getElementById("amount").value = "";
+        document.getElementById("status").value = "";
+        document.getElementById("leadFacultyID").value = "";
+    }
+</script>

@@ -1,0 +1,34 @@
+﻿@page "{replyTo?}"
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Messages.ComposeMessageModel
+@{
+    ViewData["Title"] = "Compose Message";
+}
+
+<h2>Compose Message</h2>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="alert alert-info">@Model.Message</p>
+}
+
+<form method="post">
+    <label for="RecipientID">Recipient:</label>
+    <select asp-for="RecipientID" class="form-select">
+        @foreach (var user in Model.Users)
+        {
+            <option value="@user.UserID">@user.FullName</option>
+        }
+    </select>
+
+    <label for="Subject">Subject:</label>
+    <input type="text" asp-for="Subject" class="form-control" />
+
+    <label for="Body">Message:</label>
+    <textarea asp-for="Body" class="form-control" required></textarea>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Send</button>
+
+    <a asp-page="MessageList" class="btn btn-secondary">Cancel</a>
+</form>
+

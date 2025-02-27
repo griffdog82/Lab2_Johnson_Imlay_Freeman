@@ -1,0 +1,39 @@
+﻿@page "{projectId:int}"
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Tasks.AddTaskModel
+@{
+    ViewData["Title"] = "Add New Task";
+}
+
+<h2>Add New Task for @Model.ProjectTitle</h2>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="alert alert-info">@Model.Message</p>
+}
+
+<form method="post">
+    <input type="hidden" asp-for="ProjectID" />
+
+    <label for="Description">Task Description:</label>
+    <textarea asp-for="Description" class="form-control" required></textarea>
+    <span asp-validation-for="Description" class="text-danger"></span>
+
+    <label for="DueDate">Due Date:</label>
+    <input type="date" asp-for="DueDate" class="form-control" required />
+    <span asp-validation-for="DueDate" class="text-danger"></span>
+
+    <label for="Status">Status:</label>
+    <select asp-for="Status" class="form-select">
+        <option value="Pending">Pending</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Done">Done</option>
+    </select>
+    <span asp-validation-for="Status" class="text-danger"></span>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Add Task</button>
+
+
+    <a asp-page="/Admin/Projects/ProjectTaskManagement" asp-route-id="@Model.ProjectID" class="btn btn-secondary">Cancel</a>
+</form>
+

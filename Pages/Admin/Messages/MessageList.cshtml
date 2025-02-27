@@ -1,0 +1,68 @@
+﻿@page "{id?}"
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Messages.MessageListModel
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">📥 Inbox</h2>
+
+    <div class="mb-3">
+        <label for="senderFilter" class="form-label">Filter by Sender:</label>
+        <form method="get" class="d-flex">
+            <select name="senderId" id="senderFilter" class="form-select me-2" onchange="this.form.submit()">
+                <option value="">All Senders</option>
+                @foreach (var sender in Model.Senders)
+                {
+                    <option value="@sender.UserID" selected="@(Model.SelectedSenderID == sender.UserID ? "selected" : null)">
+                        @sender.FirstName @sender.LastName
+                    </option>
+                }
+            </select>
+            <noscript><button type="submit" class="btn btn-primary">Filter</button></noscript>
+        </form>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Sender</th>
+                <th>Subject</th>
+                <th>Received</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var message in Model.Messages)
+            {
+                <tr>
+                    <td>@message.SenderName</td>
+                    <td>@message.Subject</td>
+                    <td>@message.Timestamp.ToString("g")</td>
+                    <td>
+                        <a asp-page="MessageList" asp-route-id="@message.MessageID" class="btn btn-info btn-sm">View</a>
+                        <a asp-page="ComposeMessage" asp-route-replyTo="@message.MessageID" class="btn btn-primary btn-sm">Reply</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-page="ComposeMessage" class="btn btn-success">📩 New Message</a>
+
+    @if (Model.SelectedMessage != null)
+    {
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <strong>📨 Message Details</strong>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">@Model.SelectedMessage.Subject</h5>
+                <h6 class="card-subtitle mb-2 text-muted">From: @Model.SelectedMessage.SenderName</h6>
+                <p class="card-text">@Model.SelectedMessage.Body</p>
+                <p><small class="text-muted">Received: @Model.SelectedMessage.Timestamp.ToString("f")</small></p>
+                <a asp-page="ComposeMessage" asp-route-replyTo="@Model.SelectedMessage.MessageID" class="btn btn-primary">Reply</a>
+            </div>
+        </div>
+    }
+</div>

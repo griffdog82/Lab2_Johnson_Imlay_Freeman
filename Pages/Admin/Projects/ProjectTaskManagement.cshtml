@@ -1,0 +1,44 @@
+﻿@page "{id:int}"
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Projects.ProjectTaskManagementModel
+@{
+    ViewData["Title"] = "Project Task Management";
+}
+
+<h2>Manage Tasks for: @Model.ProjectTitle</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var task in Model.Tasks)
+        {
+        <tr>
+            <td>@task.Description</td>
+            <td>@task.DueDate.ToShortDateString()</td>
+            <td>
+                <form method="post" asp-page-handler="UpdateStatus">
+                    <input type="hidden" name="TaskID" value="@task.TaskID" />
+                    <select name="NewStatus" class="form-select">
+                        <option value="Pending" selected="@((task.Status == "Pending") ? "selected" : null)">Pending</option>
+                        <option value="In Progress" selected="@((task.Status == "In Progress") ? "selected" : null)">In Progress</option>
+                        <option value="Done" selected="@((task.Status == "Done") ? "selected" : null)">Done</option>
+                    </select>
+                    <button type="submit" class="btn btn-success btn-sm">Update</button>
+                </form>
+            </td>
+            <td>
+                <a asp-page="/Admin/Tasks/EditTask" asp-route-id="@task.TaskID" class="btn btn-warning btn-sm">Edit</a>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-page="/Admin/Tasks/AddTask" asp-route-projectId="@Model.ProjectID" class="btn btn-primary">Add New Task</a>
+<a asp-page="ProjectList" class="btn btn-secondary">Back to Projects</a>

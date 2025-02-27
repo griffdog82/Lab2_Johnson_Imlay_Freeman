@@ -1,0 +1,75 @@
+﻿@page "{id:int}"
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Users.EditUserModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<h2>Edit User</h2>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="alert alert-info">@Model.Message</p>
+}
+
+<form method="post">
+    <input type="hidden" asp-for="UserID" />
+
+    <label for="Username">Username:</label>
+    <input type="text" asp-for="Username" class="form-control" required />
+    <span asp-validation-for="Username" class="text-danger"></span>
+
+    <label for="Email">Email:</label>
+    <input type="email" asp-for="Email" class="form-control" />
+    <span asp-validation-for="Email" class="text-danger"></span>
+
+    <label for="FirstName">First Name:</label>
+    <input type="text" asp-for="FirstName" class="form-control" required />
+    <span asp-validation-for="FirstName" class="text-danger"></span>
+
+    <label for="LastName">Last Name:</label>
+    <input type="text" asp-for="LastName" class="form-control" required />
+    <span asp-validation-for="LastName" class="text-danger"></span>
+
+    <label for="UserType">User Type:</label>
+    <select asp-for="UserType" class="form-select" required>
+        <option value="Admin">Admin</option>
+        <option value="Faculty">Faculty</option>
+        <option value="RepOfBusiness">RepOfBusiness</option>
+    </select>
+    <span asp-validation-for="UserType" class="text-danger"></span>
+
+    <div id="AdminTypeField" style="display: none;">
+        <label for="AdminType">Admin Type:</label>
+        <input type="text" asp-for="AdminType" class="form-control" />
+    </div>
+
+    <div id="DepartmentField">
+        <label for="Department">Department:</label>
+        <input type="text" asp-for="Department" class="form-control" />
+    </div>
+
+    <div id="BusinessPartnerField" style="display: none;">
+        <label for="BusinessPartnerID">Business Partner:</label>
+        <select asp-for="BusinessPartnerID" class="form-select">
+            <option value="">None</option>
+            @foreach (var partner in Model.BusinessPartners)
+            {
+                <option value="@partner.BusinessPartnerID">@partner.Name</option>
+            }
+        </select>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <button type="submit" class="btn btn-outline-secondary" asp-page-handler="PopulateHandler" formnovalidate>Populate</button>
+    <a asp-page="ViewUsers" class="btn btn-secondary">Cancel</a>
+</form>
+
+<script>
+    document.getElementById("UserType").addEventListener("change", function () {
+        let userType = this.value;
+        document.getElementById("AdminTypeField").style.display = (userType === "Admin") ? "block" : "none";
+        document.getElementById("DepartmentField").style.display = (userType === "Faculty") ? "block" : "none";
+        document.getElementById("BusinessPartnerField").style.display = (userType === "RepOfBusiness") ? "block" : "none";
+    });
+</script>

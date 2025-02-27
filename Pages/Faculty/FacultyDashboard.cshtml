@@ -1,0 +1,34 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.FacultyDashboardModel
+@{
+    ViewData["Title"] = "Faculty Dashboard";
+}
+
+<div class="container mt-4">
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Message"]
+        </div>
+    }
+
+    <h2 class="mb-3 text-center">🎓 Faculty Dashboard</h2>
+
+    <div class="list-group">
+        <a asp-page="/Faculty/Grants/GrantApplication" class="list-group-item list-group-item-action">
+            📝 Grant Application Form
+        </a>
+        <a asp-page="/Faculty/Grants/MyGrants" class="list-group-item list-group-item-action">
+            💰 View My Grants
+        </a>
+        <a asp-page="/Admin/Messages/MessageList" class="list-group-item list-group-item-action">
+            📩 View Messages
+        </a>
+        <a asp-page="/Faculty/Messages/ComposeMessage" class="list-group-item list-group-item-action">
+            ✉️ Compose Message
+        </a>
+        <a asp-page="/Faculty/Profile/EditProfile" class="list-group-item list-group-item-action">
+            ✏️ Edit Profile
+        </a>
+    </div>
+</div>

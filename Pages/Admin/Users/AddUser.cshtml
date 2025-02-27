@@ -1,0 +1,98 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Users.AddUserModel
+@{
+    ViewData["Title"] = "Add New User";
+}
+
+<h2>Add New User</h2>
+
+<form method="post" asp-page="AddUser">
+    <label asp-for="Username">Username:</label>
+    <input asp-for="Username" class="form-control" required />
+    <span asp-validation-for="Username" class="text-danger"></span>
+
+    <label asp-for="Password">Password:</label>
+    <input asp-for="Password" type="password" class="form-control" required />
+    <span asp-validation-for="Password" class="text-danger"></span>
+
+    <label asp-for="Email">Email:</label>
+    <input asp-for="Email" type="email" class="form-control" />
+    <span asp-validation-for="Email" class="text-danger"></span>
+
+    <label asp-for="FirstName">First Name:</label>
+    <input asp-for="FirstName" class="form-control" required />
+    <span asp-validation-for="FirstName" class="text-danger"></span>
+
+    <label asp-for="LastName">Last Name:</label>
+    <input asp-for="LastName" class="form-control" required />
+    <span asp-validation-for="LastName" class="text-danger"></span>
+
+    <label asp-for="UserType">User Type:</label>
+    <select asp-for="UserType" class="form-select" required id="userType">
+        <option value="Admin">Admin</option>
+        <option value="Faculty">Faculty</option>
+        <option value="RepOfBusiness">RepOfBusiness</option>
+    </select>
+    <span asp-validation-for="UserType" class="text-danger"></span>
+
+    <div id="AdminTypeField" style="display: none;">
+        <label asp-for="AdminType">Admin Type:</label>
+        <input asp-for="AdminType" class="form-control" />
+    </div>
+
+    <div id="DepartmentField">
+        <label asp-for="Department">Department:</label>
+        <input asp-for="Department" class="form-control" />
+    </div>
+
+    <div id="BusinessPartnerField" style="display: none;">
+        <label asp-for="BusinessPartnerID">Business Partner:</label>
+        <select asp-for="BusinessPartnerID" class="form-select">
+            <option value="">None</option>
+            @foreach (var partner in Model.BusinessPartners)
+            {
+                <option value="@partner.BusinessPartnerID">@partner.Name</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add User</button>
+    <button type="button" class="btn btn-secondary" onclick="populateFields()">Populate</button>
+    <button type="button" class="btn btn-danger" onclick="clearFields()">Clear</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="alert alert-info">@Model.Message</p>
+}
+
+<script>
+    function populateFields() {
+        document.querySelector("[name='Username']").value = "testuser";
+        document.querySelector("[name='Password']").value = "Password123";
+        document.querySelector("[name='Email']").value = "test@example.com";
+        document.querySelector("[name='FirstName']").value = "Test";
+        document.querySelector("[name='LastName']").value = "User";
+        document.querySelector("[name='UserType']").value = "RepOfBusiness";
+        document.querySelector("[name='Department']").value = "Engineering";
+        document.querySelector("[name='AdminType']").value = "Super Admin";
+
+        // Select Business Partner if available
+        let businessPartnerDropdown = document.querySelector("[name='BusinessPartnerID']");
+        if (businessPartnerDropdown.options.length > 1) {
+            businessPartnerDropdown.selectedIndex = 1; // Select first available business partner
+        }
+    }
+
+    function clearFields() {
+        document.querySelector("[name='Username']").value = "";
+        document.querySelector("[name='Password']").value = "";
+        document.querySelector("[name='Email']").value = "";
+        document.querySelector("[name='FirstName']").value = "";
+        document.querySelector("[name='LastName']").value = "";
+        document.querySelector("[name='UserType']").value = "";
+        document.querySelector("[name='Department']").value = "";
+        document.querySelector("[name='AdminType']").value = "";
+        document.querySelector("[name='BusinessPartnerID']").selectedIndex = 0; // Reset dropdown
+    }
+</script>

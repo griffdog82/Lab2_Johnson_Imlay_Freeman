@@ -1,0 +1,69 @@
+@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Projects.AddProjectModel
+@{
+    ViewData["Title"] = "Add New Project";
+}
+
+<h2>Add New Project</h2>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="alert alert-info">@Model.Message</p>
+}
+
+<form method="post">
+    <label for="Title">Project Title:</label>
+    <input type="text" asp-for="Title" class="form-control" required />
+    <span asp-validation-for="Title" class="text-danger"></span>
+
+    <label for="DueDate">Due Date:</label>
+    <input type="date" asp-for="DueDate" class="form-control" required />
+    <span asp-validation-for="DueDate" class="text-danger"></span>
+
+    <label for="CreatedBy">Created By:</label>
+    <select asp-for="CreatedBy" class="form-select" required>
+        <option value="">Select User</option>
+        @foreach (var user in Model.Users)
+        {
+            <option value="@user.UserID">@user.FirstName @user.LastName</option>
+        }
+    </select>
+    <span asp-validation-for="CreatedBy" class="text-danger"></span>
+
+    <label for="BusinessPartnerID">Business Partner (Optional):</label>
+    <select asp-for="BusinessPartnerID" class="form-select">
+        <option value="">None</option>
+        @foreach (var partner in Model.BusinessPartners)
+        {
+            <option value="@partner.BusinessPartnerID">@partner.Name</option>
+        }
+    </select>
+
+    <label for="GrantID">Associated Grant (Optional):</label>
+    <select asp-for="GrantID" class="form-select">
+        <option value="">None</option>
+        @foreach (var grant in Model.Grants)
+        {
+            <option value="@grant.GrantID">@grant.FundingSource - $@grant.Amount</option>
+        }
+    </select>
+
+    <h4 class="mt-4">Assign Faculty to Project</h4>
+
+    <label for="AssignedFacultyID">Faculty Member:</label>
+    <select asp-for="AssignedFacultyID" class="form-select">
+        <option value="">Select Faculty Member</option>
+        @foreach (var faculty in Model.FacultyMembers)
+        {
+            <option value="@faculty.UserID">@faculty.FirstName @faculty.LastName</option>
+        }
+    </select>
+    <span asp-validation-for="AssignedFacultyID" class="text-danger"></span>
+
+    <input type="hidden" asp-for="AssigningAdminID" />
+    
+
+    <br />
+    <button type="submit" class="btn btn-primary">Create Project & Assign Faculty</button>
+    <a asp-page="ProjectList" class="btn btn-secondary">Cancel</a>
+</form>

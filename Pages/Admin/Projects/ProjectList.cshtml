@@ -1,0 +1,53 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Projects.ProjectListModel
+@{
+    ViewData["Title"] = "Project List";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">📋 Project List</h2>
+
+    <div class="mb-3">
+        <label for="facultyFilter" class="form-label">Filter by Faculty Member:</label>
+        <form method="get" class="d-flex">
+            <select name="facultyId" id="facultyFilter" class="form-select me-2" onchange="this.form.submit()">
+                <option value="">All Faculty</option>
+                @foreach (var faculty in Model.FacultyMembers)
+                {
+                    <option value="@faculty.UserID" selected="@(Model.SelectedFacultyID == faculty.UserID ? "selected" : null)">
+                            @faculty.FirstName @faculty.LastName
+                    </option>
+                }
+            </select>
+            <noscript><button type="submit" class="btn btn-primary">Filter</button></noscript>
+        </form>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Title</th>
+                <th>Due Date</th>
+                <th>Created By</th>
+                <th>Business Partner</th>
+                <th>Grant</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Model.Projects)
+            {
+                <tr>
+                    <td>@project.Title</td>
+                    <td>@project.DueDate.ToString("yyyy-MM-dd")</td>
+                    <td>@project.CreatedByName</td>
+                    <td>@project.BusinessPartnerName</td>
+                    <td>@project.GrantInfo</td>
+                    <td>
+                        <a asp-page="/Admin/Projects/ProjectTaskManagement" asp-route-id="@project.ProjectID" class="btn btn-primary">Manage Tasks</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

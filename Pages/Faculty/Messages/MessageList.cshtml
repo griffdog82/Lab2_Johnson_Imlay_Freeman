@@ -1,0 +1,40 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Messages.MessageListModel
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<h2>Inbox</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Sender</th>
+            <th>Subject</th>
+            <th>Received</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var message in Model.Messages)
+        {
+            <tr>
+                <td>@message.SenderName</td>
+                <td>@message.Subject</td>
+                <td>@message.Timestamp.ToString("g")</td>
+                <td>
+                    <a asp-page="ViewMessage" asp-route-id="@message.MessageID" class="btn btn-info btn-sm">View</a>
+                    <a asp-page="ComposeMessage" asp-route-replyTo="@message.MessageID" class="btn btn-primary btn-sm">Reply</a>
+                    <form method="post" asp-page-handler="Delete" style="display:inline;">
+                        <input type="hidden" name="MessageID" value="@message.MessageID" />
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        <button type="submit" class="btn btn-outline-secondary" asp-page-handler="PopulateHandler" formnovalidate>Populate</button>
+
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-page="ComposeMessage" class="btn btn-success">New Message</a>

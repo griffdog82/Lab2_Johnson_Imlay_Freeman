@@ -1,0 +1,80 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Grants.GrantApplication
+@{
+    ViewData["Title"] = "Grant Application";
+}
+
+<h2>Grant Application</h2>
+
+<form method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    @* Grant Category Dropdown *@
+    <div class="form-group">
+        <label for="Category">Grant Category:</label>
+        <select id="Category" name="Category" class="form-control" asp-for="Category">
+            <option value="">Select Category</option>
+            <option value="Federal">Federal</option>
+            <option value="State">State</option>
+            <option value="University">University</option>
+            <option value="Business-Funded">Business-Funded</option>
+        </select>
+    </div>
+
+    @* Grant Name Input *@
+    <div class="form-group">
+        <label for="GrantName">Grant Name:</label>
+        <input type="text" id="GrantName" class="form-control" asp-for="GrantName" />
+    </div>
+
+    @* Agency/Business Funding Input *@
+    <div class="form-group">
+        <label for="FundingSource">Agency/Business Funding:</label>
+        <input type="text" id="FundingSource" class="form-control" asp-for="FundingSource" />
+    </div>
+
+    @* Submission Date *@
+    <div class="form-group">
+        <label for="SubmissionDate">Submission Date:</label>
+        <input type="date" id="SubmissionDate" class="form-control" asp-for="SubmissionDate" />
+    </div>
+
+    @* Award Date *@
+    <div class="form-group">
+        <label for="AwardDate">Award Date:</label>
+        <input type="date" id="AwardDate" class="form-control" asp-for="AwardDate" />
+    </div>
+
+    @* Amount of Money *@
+    <div class="form-group">
+        <label for="Amount">Amount of Money:</label>
+        <input type="number" id="Amount" class="form-control" asp-for="Amount" step="0.01" />
+    </div>
+
+    @* Lead Faculty Dropdown *@
+    <div class="form-group">
+        <label for="LeadFacultyID">Lead Faculty Member:</label>
+        <select id="LeadFacultyID" class="form-control" asp-for="LeadFacultyID" asp-items="Model.FacultyMembers">
+            <option value="">Select Faculty Member</option>
+        </select>
+    </div>
+
+    @* Business Partner Representative Dropdown *@
+    <div class="form-group">
+        <label for="BusinessPartnerID">Business Partner Representative:</label>
+        <select id="BusinessPartnerID" class="form-control" asp-for="BusinessPartnerID" asp-items="Model.BusinessPartners">
+            <option value="">Select Business Partner</option>
+        </select>
+    </div>
+
+    @* Buttons *@
+    <button type="submit" class="btn btn-primary" name="action" value="save">Save Draft</button>
+    <button type="submit" class="btn btn-primary" name="action" value="submit">Submit</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-info mt-3">
+        @Model.Message
+    </div>
+}

@@ -1,0 +1,84 @@
+﻿@* @page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Grants.MyGrantsModel
+@{
+    ViewData["Title"] = "My Grants";
+}
+
+<h2>My Grants</h2>
+
+<form method="get">
+    <label for="FacultyID">Select Faculty Member:</label>
+    <select asp-for="FacultyID" asp-items="Model.FacultyList" class="form-select" onchange="this.form.submit()">
+        <option value="">-- Select Faculty --</option>
+    </select>
+</form>
+
+@if (Model.Grants.Count > 0)
+{
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Grant ID</th>
+                <th>Grant Name</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var grant in Model.Grants)
+            {
+                <tr>
+                    <td>@grant.GrantID</td>
+                    <td>@grant.GrantName</td>
+                    <td>@grant.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="mt-3">No grants found for this faculty member.</p>
+}
+ *@
+@page
+@using Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Grants
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Grants.MyGrantsModel
+@{
+    ViewData["Title"] = "My Grants";
+}
+
+<h2>My Grants</h2>
+
+<form method="get">
+    <label for="FacultyID">Select Faculty Member:</label>
+    <select asp-for="FacultyID" asp-items="Model.FacultyList" class="form-select" onchange="this.form.submit()">
+        <option value="">-- Select Faculty --</option>
+    </select>
+</form>
+
+@if (Model.Grants.Count > 0)
+{
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Grant ID</th>
+                <th>Grant Name</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var grant in Model.Grants)
+            {
+                <tr>
+                    <td>@grant.GrantID</td>
+                    <td>@grant.GrantName</td>
+                    <td>@grant.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="mt-3">No grants found for this faculty member.</p>
+}

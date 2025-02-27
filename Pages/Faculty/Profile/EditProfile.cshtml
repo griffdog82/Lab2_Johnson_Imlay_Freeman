@@ -1,0 +1,52 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Profile.EditProfileModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+
+<h2>Edit Faculty Profile</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<form method="post">
+    <label for="FacultyID">Select Faculty:</label>
+    <select asp-for="FacultyID" class="form-control">
+        <option value="">-- Choose a Faculty Member --</option>
+        @foreach (var faculty in Model.FacultyList)
+        {
+            <option value="@faculty.Item1">@faculty.Item2</option>
+        }
+    </select>
+
+    <button type="submit" asp-page-handler="LoadProfile" class="btn btn-primary">Load Profile</button>
+</form>
+
+@if (Model.FacultyID != null)
+{
+    <form method="post">
+        <input type="hidden" asp-for="FacultyID" />
+
+        <label for="Username">Username:</label>
+        <input asp-for="Username" class="form-control" readonly />
+
+        <label for="FirstName">First Name:</label>
+        <input asp-for="FirstName" class="form-control" required />
+
+        <label for="LastName">Last Name:</label>
+        <input asp-for="LastName" class="form-control" required />
+
+        <label for="Email">Email:</label>
+        <input asp-for="Email" class="form-control" required />
+
+        <label for="Department">Department:</label>
+        <input asp-for="Department" class="form-control" required />
+
+        <button type="submit" asp-page-handler="UpdateProfile" class="btn btn-success">Save Changes</button>
+    </form>
+
+}
+
