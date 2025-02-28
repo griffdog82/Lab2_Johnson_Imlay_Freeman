@@ -38,7 +38,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.Admin.Projects
         public string Message { get; set; } = "";
 
         public List<DBClass.UserModel> Users { get; set; } = new();
-        public List<DBClass.BusinessPartner> BusinessPartners { get; set; } = new();
+        public List<DataClasses.BusinessPartner> BusinessPartners { get; set; } = new();
         public List<DBClass.GrantModel> Grants { get; set; } = new();
         public List<DBClass.UserModel> FacultyMembers { get; set; } = new();
 

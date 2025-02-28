@@ -9,12 +9,13 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.DB;
 
 public class DBClass
 {
+    public static SqlConnection Lab2DBConnection = new SqlConnection();
     private static readonly string Lab2DBConnString = "Server=Localhost;Database=Lab2;Trusted_Connection=True";
-    private static readonly string? AuthConnString = "Server=Localhost;Database=AUTH;Trusted_Connection=True";
+
 
     public static bool ValidateUser(string username, string password, HttpContext context)
     {
-        using (SqlConnection conn = new SqlConnection(AuthConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString)) // Replaced AuthConnString
         {
             conn.Open();
             string query = "SELECT UserID, PasswordHash, PasswordSalt FROM Users WHERE Username = @Username";
@@ -43,7 +44,7 @@ public class DBClass
 
     public static bool RegisterUser(string username, string password)
     {
-        using (SqlConnection conn = new SqlConnection(AuthConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString)) // Replaced AuthConnString
         {
             conn.Open();
             byte[] salt = GenerateSalt();
@@ -88,9 +89,9 @@ public class DBClass
     {
         context.Session.Clear();
     }
-}
 
-    
+
+
     // ================================
     // BEGIN: Griffin Section
     // ================================
@@ -1272,7 +1273,7 @@ public class DBClass
     public static List<DataClasses.BusinessPartner> LoadBusinessPartners()
     {
         List<DataClasses.BusinessPartner> partners = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
@@ -1299,7 +1300,7 @@ public class DBClass
 
     public static bool SendBusinessPartnerMessage(int senderID, int recipientID, string subject, string body)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = "INSERT INTO Message (SenderID, RecipientID, Subject, Body, Timestamp) VALUES (@SenderID, @RecipientID, @Subject, @Body, GETDATE())";
@@ -1318,7 +1319,7 @@ public class DBClass
 
     public static (string Subject, string Body)? LoadBusinessPartnerReplyMessage(int messageID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
@@ -1340,7 +1341,7 @@ public class DBClass
     public static List<UserModel> LoadBusinessPartnerUsers()
     {
         List<UserModel> users = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User]", conn))
@@ -1366,7 +1367,7 @@ public class DBClass
     {
         List<MessageModel> messages = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
 
@@ -1417,7 +1418,7 @@ public class DBClass
     // ✅ Retrieves a specific message for a Business Partner
     public static MessageModel? GetBusinessPartnerMessageByID(int messageID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(@"
@@ -1453,7 +1454,7 @@ public class DBClass
     {
         List<UserModel> senders = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(@"
@@ -1481,7 +1482,7 @@ public class DBClass
     public static List<DataClasses.Grant> LoadBusinessPartnerGrants(int businessPartnerID)
     {
         List<DataClasses.Grant> grants = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
@@ -1514,7 +1515,7 @@ public class DBClass
     public static List<SelectListItem> LoadBusinessPartnerGrantsList()
     {
         List<SelectListItem> partners = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT BusinessPartnerID, Name FROM BusinessPartner", conn))
@@ -1537,7 +1538,7 @@ public class DBClass
     public static List<DataClasses.BusinessPartner> LoadMeetingMinutesBusinessPartners()
     {
         List<DataClasses.BusinessPartner> partners = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT BusinessPartnerID, Name FROM BusinessPartner", conn))
@@ -1561,7 +1562,7 @@ public class DBClass
     public static bool InsertMeetingMinutes(DataClasses.MeetingMinute meetingMinute, out int minuteID)
     {
         minuteID = 0; // Default value
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = @"
@@ -1592,7 +1593,7 @@ public class DBClass
     public static List<DataClasses.MeetingMinute> LoadMeetingMinutes()
     {
         List<DataClasses.MeetingMinute> meetingMinutes = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
@@ -1618,7 +1619,7 @@ public class DBClass
     public static List<DataClasses.User> LoadMeetingMinutesRepresentatives()
     {
         List<DataClasses.User> representatives = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User] WHERE UserType = 'RepOfBusiness'", conn))
@@ -1642,7 +1643,7 @@ public class DBClass
     public static List<DataClasses.User> LoadMeetingMinutesUsers()
     {
         List<DataClasses.User> users = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User]", conn))

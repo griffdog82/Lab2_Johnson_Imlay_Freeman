@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Data.SqlClient;
+using Lab2_Johnson_Imlay_Freeman.Pages.DataClasses;
 
 namespace Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner
 {
     public class EditMeetingMinutesModel : PageModel
     {
-        public MeetingMinute MeetingMinute { get; set; }
+        public DataClasses.MeetingMinute MeetingMinute { get; set; }
 
         public void OnGet(int minuteId)
         {
@@ -33,7 +34,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner
                     SqlDataReader reader = command.ExecuteReader();
                     if (reader.Read())
                     {
-                        MeetingMinute = new MeetingMinute
+                        MeetingMinute = new DataClasses.MeetingMinute
                         {
                             MinuteID = reader.GetInt32(0),
                             BusinessPartnerID = reader.GetInt32(1),

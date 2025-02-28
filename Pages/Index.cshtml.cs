@@ -20,7 +20,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages
                 // Redirect logged-in users to the dashboard
                 Response.Redirect("/Admin/Admin_Dashboard");
             }
-
+            
             // Show login message if redirected from DBLogin
             if (HttpContext.Session.GetString("LoginError") != null)
             {

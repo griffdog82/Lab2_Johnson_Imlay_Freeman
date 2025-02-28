@@ -39,7 +39,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.Admin.Users
 
         public string Message { get; set; } = "";
 
-        public List<DBClass.BusinessPartner> BusinessPartners { get; set; } = new();
+        public List<DataClasses.BusinessPartner> BusinessPartners { get; set; } = new();
 
         public void OnGet()
         {
