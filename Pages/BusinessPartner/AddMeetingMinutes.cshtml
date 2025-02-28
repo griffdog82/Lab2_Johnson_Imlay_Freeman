@@ -1,0 +1,80 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner.AddMeetingMinutesModel
+@{
+    ViewData["Title"] = "Add Meeting Minutes";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3 text-center">➕ Add Meeting Minutes</h2>
+
+    <form method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <input type="hidden" asp-for="MeetingMinute.MinuteID" />
+
+        <div class="form-group">
+            <label for="businessPartnerID">Business Partner</label>
+            <select asp-for="MeetingMinute.BusinessPartnerID" class="form-select">
+                <option value="">Select a Business Partner</option>
+                @foreach (var partner in Model.BusinessPartners)
+                {
+                    <option value="@partner.BusinessPartnerID">@partner.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="representativeID">Representative</label>
+            <select asp-for="MeetingMinute.RepresentativeID" class="form-select">
+                <option value="">Select a Representative</option>
+                @foreach (var user in Model.Representatives)
+                {
+                    <option value="@user.UserID">@user.FirstName @user.LastName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="meetingWithID">Meeting With</label>
+            <select asp-for="MeetingMinute.MeetingWithID" class="form-select">
+                <option value="">Select a Meeting Attendee</option>
+                @foreach (var user in Model.Users)
+                {
+                    <option value="@user.UserID">@user.FirstName @user.LastName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="meetingDate">Meeting Date</label>
+            <input type="date" class="form-control" asp-for="MeetingMinute.MeetingDate" />
+        </div>
+
+        <div class="form-group">
+            <label for="minutesText">Minutes</label>
+            <textarea class="form-control" asp-for="MeetingMinute.MinutesText"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Minutes</button>
+        <button type="button" class="btn btn-secondary" onclick="populateFields()">Populate</button>
+        <button type="button" class="btn btn-danger" onclick="clearFields()">Clear</button>
+    </form>
+
+    <script>
+        function populateFields() {
+            document.getElementById("MeetingMinute_BusinessPartnerID").value = "2";
+            document.getElementById("MeetingMinute_RepresentativeID").value = "3";
+            document.getElementById("MeetingMinute_MeetingWithID").value = "4";
+            document.getElementById("MeetingMinute_MeetingDate").value = "2024-02-21";
+            document.getElementById("MeetingMinute_MinutesText").value = "Meeting discussion summary.";
+        }
+
+        function clearFields() {
+            document.getElementById("MeetingMinute_BusinessPartnerID").value = "";
+            document.getElementById("MeetingMinute_RepresentativeID").value = "";
+            document.getElementById("MeetingMinute_MeetingWithID").value = "";
+            document.getElementById("MeetingMinute_MeetingDate").value = "";
+            document.getElementById("MeetingMinute_MinutesText").value = "";
+        }
+    </script>
+</div>

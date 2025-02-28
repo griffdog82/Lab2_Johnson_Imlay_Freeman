@@ -1,0 +1,50 @@
+﻿@page "{replyTo?}"
+@* Imported by Griffin Imlay from Lab1 on 2_28_2025*@
+@model Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner.ComposeMessageModel
+@{
+    ViewData["Title"] = "Compose Message";
+}
+
+<h2>Compose Message</h2>
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <p class="alert alert-info">@Model.Message</p>
+}
+
+<form method="post">
+    <div class="mb-3">
+        <label for="UserID" class="form-label">Select Sender:</label>
+        <select asp-for="UserID" class="form-select">
+            <option value="">-- Select a User --</option>
+            @foreach (var user in Model.Users)
+            {
+                <option value="@user.UserID">@user.FirstName @user.LastName</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="RecipientID" class="form-label">Recipient:</label>
+        <select asp-for="RecipientID" class="form-select">
+            @foreach (var user in Model.Users)
+            {
+                <option value="@user.UserID">@user.FirstName @user.LastName</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="Subject" class="form-label">Subject:</label>
+        <input type="text" asp-for="Subject" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="Body" class="form-label">Message:</label>
+        <textarea asp-for="Body" class="form-control" required></textarea>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Send</button>
+    <a asp-page="ViewMessages" class="btn btn-secondary">Cancel</a>
+</form>

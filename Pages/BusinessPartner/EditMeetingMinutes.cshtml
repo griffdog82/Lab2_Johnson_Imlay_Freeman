@@ -1,0 +1,31 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner.EditMeetingMinutesModel
+
+<h2>Edit Meeting Minutes</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label for="meetingDate">Meeting Date</label>
+        <input type="date" class="form-control" id="meetingDate" name="MeetingDate" asp-for="MeetingMinute.MeetingDate" required />
+    </div>
+    <div class="form-group">
+        <label for="minutesText">Minutes</label>
+        <textarea class="form-control" id="minutesText" name="MinutesText" asp-for="MeetingMinute.MinutesText" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <button type="button" class="btn btn-secondary" onclick="populateFields()">Populate</button>
+    <button type="button" class="btn btn-danger" onclick="clearFields()">Clear</button>
+</form>
+
+<script>
+    function populateFields() {
+        document.getElementById("meetingDate").value = "2024-02-20"; // Example date
+        document.getElementById("minutesText").value = "30"; // Example minutes text
+    }
+
+    function clearFields() {
+        document.getElementById("meetingDate").value = "";
+        document.getElementById("minutesText").value = "";
+    }
+</script>

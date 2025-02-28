@@ -1269,10 +1269,252 @@ public class DBClass
     // BEGIN: Zach Section (BusinessPartner)
     // ================================
     #region ZachSection
-    public static List<BusinessPartner> LoadBusinessPartners()
+    public static List<DataClasses.BusinessPartner> LoadBusinessPartners()
     {
-        List<BusinessPartner> partners = new();
-        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
+        List<DataClasses.BusinessPartner> partners = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand(
+                "SELECT BusinessPartnerID, Name, OrgType, PrimaryContact, BusinessType, StatusFlag, ActiveStatus FROM BusinessPartner", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    partners.Add(new DataClasses.BusinessPartner
+                    {
+                        BusinessPartnerID = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        OrgType = reader.GetString(2),
+                        PrimaryContact = reader.IsDBNull(3) ? null : reader.GetString(3),
+                        BusinessType = reader.GetString(4),
+                        StatusFlag = reader.GetString(5),
+                        ActiveStatus = reader.GetBoolean(6)
+                    });
+                }
+            }
+        }
+        return partners;
+    }
+
+    public static bool SendBusinessPartnerMessage(int senderID, int recipientID, string subject, string body)
+    {
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            string query = "INSERT INTO Message (SenderID, RecipientID, Subject, Body, Timestamp) VALUES (@SenderID, @RecipientID, @Subject, @Body, GETDATE())";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@SenderID", senderID);
+                cmd.Parameters.AddWithValue("@RecipientID", recipientID);
+                cmd.Parameters.AddWithValue("@Subject", subject);
+                cmd.Parameters.AddWithValue("@Body", body);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+    }
+
+    public static (string Subject, string Body)? LoadBusinessPartnerReplyMessage(int messageID)
+    {
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand(
+                "SELECT Subject, Body FROM Message WHERE MessageID = @MessageID", conn))
+            {
+                cmd.Parameters.AddWithValue("@MessageID", messageID);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return ("RE: " + reader.GetString(0), "\n\n----- Original Message -----\n" + reader.GetString(1));
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static List<UserModel> LoadBusinessPartnerUsers()
+    {
+        List<UserModel> users = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User]", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    users.Add(new UserModel
+                    {
+                        UserID = reader.GetInt32(0),
+                        FirstName = reader.GetString(1),
+                        LastName = reader.GetString(2)
+                    });
+                }
+            }
+        }
+        return users;
+    }
+
+
+
+    public static List<MessageModel> GetBusinessPartnerMessages(int recipientID, int? senderID = null)
+    {
+        List<MessageModel> messages = new();
+
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+
+            string query = @"
+        SELECT m.MessageID, 
+               u.FirstName + ' ' + u.LastName AS SenderName, 
+               m.Subject, 
+               m.Timestamp
+        FROM Message m
+        JOIN [User] u ON m.SenderID = u.UserID
+        WHERE m.RecipientID = @RecipientID";
+
+            if (senderID.HasValue)
+            {
+                query += " AND m.SenderID = @SenderID";
+            }
+
+            query += " ORDER BY m.Timestamp DESC";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@RecipientID", recipientID);
+
+                if (senderID.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@SenderID", senderID.Value);
+                }
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        messages.Add(new MessageModel
+                        {
+                            MessageID = reader.GetInt32(0),
+                            SenderName = reader.GetString(1),
+                            Subject = reader.IsDBNull(2) ? "(No Subject)" : reader.GetString(2),
+                            Timestamp = reader.GetDateTime(3)
+                        });
+                    }
+                }
+            }
+        }
+
+        return messages;
+    }
+
+    // ✅ Retrieves a specific message for a Business Partner
+    public static MessageModel? GetBusinessPartnerMessageByID(int messageID)
+    {
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand(@"
+            SELECT m.MessageID, u.FirstName + ' ' + u.LastName AS SenderName, 
+                   m.Subject, m.Body, m.Timestamp
+            FROM Message m
+            JOIN [User] u ON m.SenderID = u.UserID
+            WHERE m.MessageID = @MessageID", conn))
+            {
+                cmd.Parameters.AddWithValue("@MessageID", messageID);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new MessageModel
+                        {
+                            MessageID = reader.GetInt32(0),
+                            SenderName = reader.GetString(1),
+                            Subject = reader.IsDBNull(2) ? "(No Subject)" : reader.GetString(2),
+                            Body = reader.GetString(3),
+                            Timestamp = reader.GetDateTime(4)
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // ✅ Loads the list of users who have sent messages to the Business Partner
+    public static List<UserModel> GetBusinessPartnerMessageSenders()
+    {
+        List<UserModel> senders = new();
+
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand(@"
+            SELECT DISTINCT u.UserID, u.FirstName, u.LastName
+            FROM [User] u
+            JOIN Message m ON u.UserID = m.SenderID", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    senders.Add(new UserModel
+                    {
+                        UserID = reader.GetInt32(0),
+                        FirstName = reader.GetString(1),
+                        LastName = reader.GetString(2)
+                    });
+                }
+            }
+        }
+
+        return senders;
+    }
+
+
+    public static List<DataClasses.Grant> LoadBusinessPartnerGrants(int businessPartnerID)
+    {
+        List<DataClasses.Grant> grants = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand(
+                "SELECT GrantID, GrantName, Category, FundingSource, SubmissionDate, AwardDate, Amount, Status FROM [Grant] WHERE BusinessPartnerID = @BusinessPartnerID", conn))
+            {
+                cmd.Parameters.AddWithValue("@BusinessPartnerID", businessPartnerID);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        grants.Add(new DataClasses.Grant
+                        {
+                            GrantID = reader.GetInt32(0),
+                            GrantName = reader.GetString(1),
+                            Category = reader.GetString(2),
+                            FundingSource = reader.GetString(3),
+                            SubmissionDate = reader.GetDateTime(4),
+                            AwardDate = reader.IsDBNull(5) ? (DateTime?)null : reader.GetDateTime(5),
+                            Amount = reader.GetDecimal(6),
+                            Status = reader.GetString(7)
+                        });
+                    }
+                }
+            }
+        }
+        return grants;
+    }
+
+    // ✅ Returns a list of Business Partners for dropdown selection
+    public static List<SelectListItem> LoadBusinessPartnerGrantsList()
+    {
+        List<SelectListItem> partners = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT BusinessPartnerID, Name FROM BusinessPartner", conn))
@@ -1280,7 +1522,30 @@ public class DBClass
             {
                 while (reader.Read())
                 {
-                    partners.Add(new BusinessPartner
+                    partners.Add(new SelectListItem
+                    {
+                        Value = reader.GetInt32(0).ToString(),
+                        Text = reader.GetString(1)
+                    });
+                }
+            }
+        }
+        return partners;
+    }
+
+
+    public static List<DataClasses.BusinessPartner> LoadMeetingMinutesBusinessPartners()
+    {
+        List<DataClasses.BusinessPartner> partners = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand("SELECT BusinessPartnerID, Name FROM BusinessPartner", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    partners.Add(new DataClasses.BusinessPartner
                     {
                         BusinessPartnerID = reader.GetInt32(0),
                         Name = reader.GetString(1)
@@ -1291,40 +1556,111 @@ public class DBClass
         return partners;
     }
 
-    public class BusinessPartner
+
+
+    public static bool InsertMeetingMinutes(DataClasses.MeetingMinute meetingMinute, out int minuteID)
     {
-        public int BusinessPartnerID { get; set; }
-        public string Name { get; set; } = "";
+        minuteID = 0; // Default value
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            string query = @"
+        INSERT INTO MeetingMinute (BusinessPartnerID, RepresentativeID, MeetingWithID, MeetingDate, MinutesText) 
+        OUTPUT INSERTED.MinuteID
+        VALUES (@BusinessPartnerID, @RepresentativeID, @MeetingWithID, @MeetingDate, @MinutesText)";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@BusinessPartnerID", meetingMinute.BusinessPartnerID);
+                cmd.Parameters.AddWithValue("@RepresentativeID", meetingMinute.RepresentativeID);
+                cmd.Parameters.AddWithValue("@MeetingWithID", meetingMinute.MeetingWithID);
+                cmd.Parameters.AddWithValue("@MeetingDate", meetingMinute.MeetingDate);
+                cmd.Parameters.AddWithValue("@MinutesText", meetingMinute.MinutesText);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                {
+                    minuteID = Convert.ToInt32(result);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
+    // ✅ Load Business Partners for dropdown
+    public static List<DataClasses.MeetingMinute> LoadMeetingMinutes()
+    {
+        List<DataClasses.MeetingMinute> meetingMinutes = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand(
+                "SELECT MinuteID, BusinessPartnerID, MeetingDate, MinutesText FROM MeetingMinute", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    meetingMinutes.Add(new DataClasses.MeetingMinute
+                    {
+                        MinuteID = reader.GetInt32(0),
+                        BusinessPartnerID = reader.GetInt32(1),
+                        MeetingDate = reader.GetDateTime(2),
+                        MinutesText = reader.GetString(3)
+                    });
+                }
+            }
+        }
+        return meetingMinutes; // ✅ Correct return statement
+    }
 
+    // ✅ Load Representatives (Required)
+    public static List<DataClasses.User> LoadMeetingMinutesRepresentatives()
+    {
+        List<DataClasses.User> representatives = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User] WHERE UserType = 'RepOfBusiness'", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    representatives.Add(new DataClasses.User
+                    {
+                        UserID = reader.GetInt32(0),
+                        FirstName = reader.GetString(1),
+                        LastName = reader.GetString(2)
+                    });
+                }
+            }
+        }
+        return representatives;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // ✅ Load Meeting Attendees (Required)
+    public static List<DataClasses.User> LoadMeetingMinutesUsers()
+    {
+        List<DataClasses.User> users = new();
+        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        {
+            conn.Open();
+            using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User]", conn))
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    users.Add(new DataClasses.User
+                    {
+                        UserID = reader.GetInt32(0),
+                        FirstName = reader.GetString(1),
+                        LastName = reader.GetString(2)
+                    });
+                }
+            }
+        }
+        return users;
+    }
 
 
 

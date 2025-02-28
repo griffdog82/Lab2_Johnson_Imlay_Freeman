@@ -1,0 +1,24 @@
+﻿@page
+@model Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner.ViewMeetingMinutesModel
+
+<h2>📅 View Meeting Minutes</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Meeting Date</th>
+            <th>Minutes</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var meeting in Model.MeetingMinutes)
+        {
+            <tr>
+                <td>@meeting.MeetingDate.ToString("yyyy-MM-dd")</td>
+                <td>@meeting.MinutesText</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-page="/BusinessPartner/BusinessPartner_Dashboard" class="btn btn-primary">⬅ Back to Dashboard</a>
