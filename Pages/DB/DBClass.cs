@@ -2,22 +2,102 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Security.Cryptography;
 using static Lab2_Johnson_Imlay_Freeman.Pages.Admin.Projects.AddProjectModel;
 
 namespace Lab2_Johnson_Imlay_Freeman.Pages.DB;
 
 public class DBClass
 {
-    public static SqlConnection Lab2DBConnection = new SqlConnection();
-    private static readonly string? Lab1DBConnString = "Server=Localhost;Database=Lab2;Trusted_Connection=True";
+    private static readonly string Lab2DBConnString = "Server=Localhost;Database=Lab2;Trusted_Connection=True";
+    private static readonly string? AuthConnString = "Server=Localhost;Database=AUTH;Trusted_Connection=True";
 
+    public static bool ValidateUser(string username, string password, HttpContext context)
+    {
+        using (SqlConnection conn = new SqlConnection(AuthConnString))
+        {
+            conn.Open();
+            string query = "SELECT UserID, PasswordHash, PasswordSalt FROM Users WHERE Username = @Username";
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@Username", username);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        byte[] storedHash = Convert.FromBase64String(reader["PasswordHash"].ToString());
+                        byte[] storedSalt = Convert.FromBase64String(reader["PasswordSalt"].ToString());
+
+                        if (VerifyPassword(password, storedHash, storedSalt))
+                        {
+                            context.Session.SetString("Username", username);
+                            context.Session.SetInt32("UserID", Convert.ToInt32(reader["UserID"]));
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static bool RegisterUser(string username, string password)
+    {
+        using (SqlConnection conn = new SqlConnection(AuthConnString))
+        {
+            conn.Open();
+            byte[] salt = GenerateSalt();
+            byte[] hash = HashPassword(password, salt);
+
+            string query = "INSERT INTO Users (Username, PasswordHash, PasswordSalt) VALUES (@Username, @PasswordHash, @PasswordSalt)";
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.Parameters.AddWithValue("@PasswordHash", Convert.ToBase64String(hash));
+                cmd.Parameters.AddWithValue("@PasswordSalt", Convert.ToBase64String(salt));
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+    }
+
+    private static byte[] GenerateSalt()
+    {
+        byte[] salt = new byte[16];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(salt);
+        }
+        return salt;
+    }
+
+    private static byte[] HashPassword(string password, byte[] salt)
+    {
+        using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+        {
+            return pbkdf2.GetBytes(32);
+        }
+    }
+
+    private static bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
+    {
+        byte[] computedHash = HashPassword(password, storedSalt);
+        return CryptographicOperations.FixedTimeEquals(computedHash, storedHash);
+    }
+
+    public static void Logout(HttpContext context)
+    {
+        context.Session.Clear();
+    }
+}
+
+    
     // ================================
     // BEGIN: Griffin Section
     // ================================
     #region GriffinLand
     public static bool AddUser(string username, string password, string? email, string firstName, string lastName, string userType, string? department, string? adminType, int? businessPartnerID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = @"INSERT INTO [User] 
@@ -43,7 +123,7 @@ public class DBClass
 
     public static bool EditUser(int userID, string username, string? email, string firstName, string lastName, string userType, string? department, string? adminType, int? businessPartnerID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = @"UPDATE [User] 
@@ -72,7 +152,7 @@ public class DBClass
     {
         List<UserModel> users = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(@"
@@ -105,7 +185,7 @@ public class DBClass
 
     public static string? LoadProjectTitle(int projectID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT Title FROM Project WHERE ProjectID = @ProjectID", conn))
@@ -125,7 +205,7 @@ public class DBClass
 
     public static bool AddTask(int projectID, string description, DateTime dueDate, string status)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = "INSERT INTO Task (ProjectID, Description, DueDate, Status) VALUES (@ProjectID, @Description, @DueDate, @Status)";
@@ -143,7 +223,7 @@ public class DBClass
     }
     public static bool EditTask(int taskID, string description, DateTime dueDate, string status)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = "UPDATE Task SET Description = @Description, DueDate = @DueDate, Status = @Status WHERE TaskID = @TaskID";
@@ -169,7 +249,7 @@ public class DBClass
     }
     public static TaskModel? GetTask(int taskID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT ProjectID, Description, DueDate, Status FROM Task WHERE TaskID = @TaskID", conn))
@@ -198,7 +278,7 @@ public class DBClass
     //public static List<UserModel> LoadUsers()
     //{
     //    List<UserModel> users = new();
-    //    using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+    //    using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
     //    {
     //        conn.Open();
     //        using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User]", conn))
@@ -220,7 +300,7 @@ public class DBClass
     public static List<UserModel> LoadFacultyMembers()
     {
         List<UserModel> faculty = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName, LastName FROM [User] WHERE UserType = 'Faculty'", conn))
@@ -243,7 +323,7 @@ public class DBClass
     //public static List<BusinessPartner> LoadBusinessPartners()
     //{
     //    List<BusinessPartner> partners = new();
-    //    using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+    //    using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
     //    {
     //        conn.Open();
     //        using (SqlCommand cmd = new SqlCommand("SELECT BusinessPartnerID, Name FROM BusinessPartner", conn))
@@ -265,7 +345,7 @@ public class DBClass
     public static List<GrantModel> LoadGrants()
     {
         List<GrantModel> grants = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT GrantID, FundingSource, Amount FROM [Grant]", conn))
@@ -286,7 +366,7 @@ public class DBClass
     }
     public static int AddProject(string title, DateTime dueDate, int createdBy, int? businessPartnerID, int? grantID, int? assignedFacultyID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = @"INSERT INTO Project 
@@ -325,7 +405,7 @@ public class DBClass
     public static int GetCurrentUserID()
     {
         // Example: Fetch logged-in UserID from session or database
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT UserID FROM [User] WHERE /* YOUR LOGIN LOGIC HERE */", conn)) // TODO: LOGIN @ALL 
@@ -497,7 +577,7 @@ public class DBClass
     {
         List<UserModel> facultyList = new List<UserModel>();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = @"
@@ -534,7 +614,7 @@ public class DBClass
     {
         List<ProjectModel> projectList = new List<ProjectModel>();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
 
@@ -586,7 +666,7 @@ public class DBClass
     //ProjectTaskManagement.cshtml.cs
     public static string? GetProjectTitle(int projectID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT Title FROM Project WHERE ProjectID = @ProjectID", conn))
@@ -607,7 +687,7 @@ public class DBClass
     {
         List<TaskModel> tasks = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
@@ -634,7 +714,7 @@ public class DBClass
     }
     public static bool UpdateTaskStatus(int taskID, string newStatus)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = "UPDATE Task SET Status = @Status WHERE TaskID = @TaskID";
@@ -651,7 +731,7 @@ public class DBClass
     //public static List<UserModel> LoadUsers()
     //{
     //    List<UserModel> users = new();
-    //    using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+    //    using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
     //    {
     //        conn.Open();
     //        using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName + ' ' + LastName AS FullName FROM [User]", conn))
@@ -671,7 +751,7 @@ public class DBClass
     //}
     public static (string Subject, string Body)? LoadReplyMessage(int messageID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
@@ -691,7 +771,7 @@ public class DBClass
     }
     public static bool SendMessage(int senderID, int recipientID, string subject, string body)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = "INSERT INTO Message (SenderID, RecipientID, Subject, Body, Timestamp) VALUES (@SenderID, @RecipientID, @Subject, @Body, GETDATE())";
@@ -712,7 +792,7 @@ public class DBClass
     {
         List<MessageModel> messages = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
 
@@ -771,7 +851,7 @@ public class DBClass
     {
         List<UserModel> senders = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(@"
@@ -796,7 +876,7 @@ public class DBClass
     }
     public static MessageModel? GetMessageByID(int messageID)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(@"
@@ -831,7 +911,7 @@ public class DBClass
     public static int InsertGrantApplication(string category, string grantName, string fundingSource, DateTime submissionDate,
         DateTime? awardDate, decimal amount, string leadFacultyID, string? businessPartnerID, string status)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
 
@@ -859,7 +939,7 @@ public class DBClass
     //Method for Getting the GrantDetails
     public static GrantModel? GetGrantDetails(int grantId)
     {
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
 
@@ -916,7 +996,7 @@ public class DBClass
     {
         List<GrantModel> grants = new();
 
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             string query = @"
@@ -954,7 +1034,7 @@ public class DBClass
 
         try
         {
-            using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+            using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
             {
                 conn.Open();
                 string query = "SELECT UserID, FirstName + ' ' + LastName AS FullName FROM [User] WHERE UserType = 'Faculty'";
@@ -1192,7 +1272,7 @@ public class DBClass
     public static List<BusinessPartner> LoadBusinessPartners()
     {
         List<BusinessPartner> partners = new();
-        using (SqlConnection conn = new SqlConnection(Lab1DBConnString))
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand("SELECT BusinessPartnerID, Name FROM BusinessPartner", conn))
@@ -1415,7 +1495,7 @@ public class DBClass
     {
         SqlCommand cmdProductRead = new SqlCommand();
         cmdProductRead.Connection = Lab2DBConnection;
-        cmdProductRead.Connection.ConnectionString = Lab1DBConnString;
+        cmdProductRead.Connection.ConnectionString = Lab2DBConnString;
         cmdProductRead.CommandText = "SELECT * FROM [User]";
         cmdProductRead.Connection.Open(); // Open connection here, close in Model!
 

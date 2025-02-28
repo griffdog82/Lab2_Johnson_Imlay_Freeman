@@ -10,7 +10,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.Admin
     public class AddGrantModel : PageModel
     {
         private readonly string _connectionString = "Server=localhost;Database=Lab1;Trusted_Connection=True;";
-
+        // TODO; Fix the connection string
         [BindProperty]
         public Grant Grant { get; set; } = new Grant();
 
