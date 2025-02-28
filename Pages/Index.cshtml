@@ -1,34 +1,43 @@
-﻿@page 
-<!-- Imported from Lab1 by Griffin Imlay on 2_27_2025 -->
-<!-- TODO Update this to match Ezell's requirements: The _Layout and Index pages that comes with the Template project we
-started with must be redesigned with: Navigation Links and a different
-appearance and layout (change the color scheme and arrangement of the
-default index page. This will require you to carefully understand what is
-going on in _Layout.cshtml -->
-
+﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg p-4">
+                <div class="text-center">
+                    <h1 class="display-4">Welcome</h1>
+                    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+                </div>
+
+                <form method="post">
+                    <div class="form-group">
+                        <label asp-for="Username">Username</label>
+                        <input asp-for="Username" class="form-control" placeholder="Enter your username">
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Password">Password</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block mt-3">Login</button>
+
+                    @if (ViewData["LoginMessage"] != null)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @ViewData["LoginMessage"]
+                        </div>
+                    }
+                </form>
+
+                <div class="text-muted text-center mt-3">
+                    Hint: Try using **"jesse@vamonospest.com"** as the email and **"yo123"** as the password to log in as Jesse Pinkman.
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<form>
-    <div class="form-group">
-        <label for="exampleInputEmail1">Email address</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-        <small id="emailHelp" class="form-text text-muted">We'll WILL share your email with EVERyONE else.</small>
-    </div>
-    Hint: TrY using "jesse@vamonospest.com" for email and yo123 to Password login as admin Jesse Pinkman
-    <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-    </div>
-    <div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-        <label class="form-check-label" for="exampleCheck1">Check me out</label>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>

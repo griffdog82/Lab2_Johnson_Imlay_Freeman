@@ -1,31 +1,49 @@
+using Lab2_Johnson_Imlay_Freeman.Pages.DB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Lab2_Johnson_Imlay_Freeman.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
+        [BindProperty]
+        public string Username { get; set; }
+        [BindProperty]
+        public string Password { get; set; }
 
-        public IndexModel(ILogger<IndexModel> logger)
-        {
-            _logger = logger;
-        }
-
-        public void OnGet()
+        public IActionResult OnGet()
         {
             if (HttpContext.Session.GetString("Username") != null)
             {
-                // Redirect logged-in users to the dashboard
-                Response.Redirect("/Admin/Admin_Dashboard");
+                return RedirectToPage("/Admin/Admin_Dashboard");
             }
-            
-            // Show login message if redirected from DBLogin
+
             if (HttpContext.Session.GetString("LoginError") != null)
             {
                 ViewData["LoginMessage"] = HttpContext.Session.GetString("LoginError");
-                HttpContext.Session.Remove("LoginError"); // Clear message after displaying
+                HttpContext.Session.Remove("LoginError");
+            }
+
+            return Page();
+        }
+
+        public IActionResult OnPost()
+        {
+            if (DBClass.AuthenticateUser(Username, Password))
+            {
+                Debug.WriteLine($"User {Username} authenticated!");
+                // TODO: Remove Debug lines
+
+                HttpContext.Session.SetString("Username", Username);
+                return RedirectToPage("/Admin/Admin_Dashboard");
+            }
+            else
+            {
+                // TODO: Remove Debug lines
+            Debug.WriteLine("Authentication failed.");
+                ViewData["LoginMessage"] = "Username and/or Password Incorrect";
+                return Page();
             }
         }
     }

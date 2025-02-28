@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using static Lab2_Johnson_Imlay_Freeman.Pages.Admin.Projects.AddProjectModel;
 
@@ -42,23 +43,47 @@ public class DBClass
         return false;
     }
 
-    public static bool RegisterUser(string username, string password)
+    public static void RegisterUser(string username, string plainPassword)
     {
-        using (SqlConnection conn = new SqlConnection(Lab2DBConnString)) // Replaced AuthConnString
+        string salt = GenerateSalt();
+        byte[] hashedPassword = HashPassword(plainPassword, salt); // Stays as byte[]
+
+        string query = "INSERT INTO HashedCredentials (Username, Password, Salt) VALUES (@Username, @Password, @Salt)";
+
+        using (SqlConnection conn = new SqlConnection(public static void RegisterUser(string username, string plainPassword)
+            {
+                string salt = GenerateSalt();
+                byte[] hashedPassword = HashPassword(plainPassword, salt); // Stays as byte[]
+
+                string query = "INSERT INTO HashedCredentials (Username, Password, Salt) VALUES (@Username, @Password, @Salt)";
+
+                using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Username", username);
+                        cmd.Parameters.Add("@Password", System.Data.SqlDbType.VarBinary).Value = hashedPassword; // Fix: Explicitly set type
+                        cmd.Parameters.AddWithValue("@Salt", salt);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                Console.WriteLine($"✅ User {username} registered with a hashed password.");
+            }
+))
         {
             conn.Open();
-            byte[] salt = GenerateSalt();
-            byte[] hash = HashPassword(password, salt);
-
-            string query = "INSERT INTO Users (Username, PasswordHash, PasswordSalt) VALUES (@Username, @PasswordHash, @PasswordSalt)";
             using (SqlCommand cmd = new SqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@Username", username);
-                cmd.Parameters.AddWithValue("@PasswordHash", Convert.ToBase64String(hash));
-                cmd.Parameters.AddWithValue("@PasswordSalt", Convert.ToBase64String(salt));
-                return cmd.ExecuteNonQuery() > 0;
+                cmd.Parameters.Add("@Password", System.Data.SqlDbType.VarBinary).Value = hashedPassword; // Fix: Explicitly set type
+                cmd.Parameters.AddWithValue("@Salt", salt);
+                cmd.ExecuteNonQuery();
             }
         }
+
+        Debug.WriteLine($"✅ User {username} registered with a hashed password.");
     }
 
     private static byte[] GenerateSalt()
@@ -416,8 +441,49 @@ public class DBClass
             }
         }
     }
+    // Auth 
+    public static bool AuthenticateUser(string username, string password)
+    {
+        bool isValidUser = false;
+        string saltQuery = "SELECT Salt FROM HashedCredentials WHERE Username = @Username";
 
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
+        {
+            conn.Open();
+            Debug.WriteLine("✅ DB Connection Opened.");
 
+            string salt = null;
+            using (SqlCommand cmd = new SqlCommand(saltQuery, conn))
+            {
+                cmd.Parameters.AddWithValue("@Username", username);
+                var result = cmd.ExecuteScalar();
+                if (result != null)
+                    salt = result.ToString();
+            }
+
+            if (!string.IsNullOrEmpty(salt))
+            {
+                byte[] hashedPassword = HashPassword(password, salt);
+
+                string query = "SELECT COUNT(*) FROM HashedCredentials WHERE Username = @Username AND Password = @Password";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Username", username);
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword);
+
+                    int count = (int)cmd.ExecuteScalar();
+                    Debug.WriteLine($"🔍 Query Result: {count}");
+                    isValidUser = count > 0;
+                }
+            }
+            else
+            {
+                Debug.WriteLine("❌ No salt found, user does not exist.");
+            }
+        }
+        return isValidUser;
+    }
+    
 
 
 
