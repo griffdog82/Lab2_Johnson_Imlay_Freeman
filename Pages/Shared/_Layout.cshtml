@@ -62,6 +62,16 @@
             <button type="submit">Login</button>
         </form>
     }
+    @* TODO: Remove the Session Indicator method below*@
+    @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
+    {
+        <p>Session Debug: @HttpContextAccessor.HttpContext.Session.GetString("Username")</p>
+        <a href="/Index?handler=Logout">Logout</a>
+    }
+    else
+    {
+        <p>Session Debug: No user session detected.</p>
+    }
 
 
 </body>
