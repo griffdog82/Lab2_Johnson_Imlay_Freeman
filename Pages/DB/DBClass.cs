@@ -14,28 +14,36 @@ public class DBClass
     private static readonly string Lab2DBConnString = "Server=Localhost;Database=Lab2;Trusted_Connection=True";
 
 
-    public static bool StoredProcedureLogin(string Username, string Password)
+    public static bool StoredProcedureLogin(string Username, string Password, HttpContext context)
     {
-        using (SqlCommand cmd = new SqlCommand())
+        using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
-            cmd.Connection = new SqlConnection(Lab2DBConnString);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandText = "sp_simpleLogin";
+            using (SqlCommand cmd = new SqlCommand("sp_simpleLogin", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Username", Username);
+                cmd.Parameters.AddWithValue("@Password", Password);
 
-            cmd.Parameters.AddWithValue("@Username", Username);
-            cmd.Parameters.AddWithValue("@Password", Password);
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read()) // ✅ If user is found
+                    {
+                        int userId = reader.GetInt32(0);  // UserID
+                        string userType = reader.GetString(1); // UserType
 
-            cmd.Connection.Open();
-            int result = (int)cmd.ExecuteScalar(); // Expects COUNT(*) result (1 or 0)
+                        // ✅ Store UserID and UserType in session
+                        context.Session.SetString("Username", Username);
+                        context.Session.SetString("UserRole", userType);
 
-            return result > 0; // Returns true if credentials are valid
+                        return true; // ✅ Successful login
+                    }
+                }
+            }
         }
+        return false; // ❌ Login failed
     }
 
-    public static void Logout(HttpContext context)
-    {
-        context.Session.Clear();
-    }
 
 
 
@@ -296,7 +304,7 @@ public class DBClass
         using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
-            using (SqlCommand cmd = new SqlCommand("SELECT GrantID, FundingSource, Amount FROM [Grant]", conn))
+            using (SqlCommand cmd = new SqlCommand("SELECT GrantID, FundingSource, Amount FROM [GrantApplication]", conn))
             using (SqlDataReader reader = cmd.ExecuteReader())
             {
                 while (reader.Read())
@@ -893,7 +901,7 @@ public class DBClass
 
             string query = @"
                     SELECT GrantName, Category, FundingSource, SubmissionDate, AwardDate, Amount, LeadFacultyID, BusinessPartnerID, Status
-                    FROM [Grant]
+                    FROM [GrantApplication]
                     WHERE GrantID = @GrantID";
 
             using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -949,7 +957,7 @@ public class DBClass
             conn.Open();
             string query = @"
                     SELECT GrantID, GrantName, Status
-                    FROM [Grant]
+                    FROM [GrantApplication]
                     WHERE @FacultyID IN (LeadFacultyID, BusinessPartnerID)
                     ORDER BY SubmissionDate DESC";
 
@@ -1433,7 +1441,7 @@ public class DBClass
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(
-                "SELECT GrantID, GrantName, Category, FundingSource, SubmissionDate, AwardDate, Amount, Status FROM [Grant] WHERE BusinessPartnerID = @BusinessPartnerID", conn))
+                "SELECT GrantID, GrantName, Category, FundingSource, SubmissionDate, AwardDate, Amount, Status FROM [GrantApplication] WHERE BusinessPartnerID = @BusinessPartnerID", conn))
             {
                 cmd.Parameters.AddWithValue("@BusinessPartnerID", businessPartnerID);
                 using (SqlDataReader reader = cmd.ExecuteReader())
@@ -1798,7 +1806,7 @@ public class DBClass
 
     public static SqlDataReader GrantReader()
     {
-        SqlCommand cmd = new SqlCommand("SELECT * FROM [Grant]", Lab2DBConnection);
+        SqlCommand cmd = new SqlCommand("SELECT * FROM [GrantApplication]", Lab2DBConnection);
         cmd.Connection.Open();
         SqlDataReader tempReader = cmd.ExecuteReader();
         return tempReader;

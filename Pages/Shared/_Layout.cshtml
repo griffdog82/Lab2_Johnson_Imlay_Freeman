@@ -46,6 +46,23 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
+    @using Microsoft.AspNetCore.Http
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+    @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
+    {
+        <p>Welcome, @HttpContextAccessor.HttpContext.Session.GetString("Username")!</p>
+        <a href="/Index?handler=Logout">Logout</a> <!-- ✅ Directly calls logout handler -->
+    }
+    else
+    {
+        <form method="post" asp-page="/Index">
+            <input type="text" name="Username" placeholder="Username" required />
+            <input type="password" name="Password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+    }
+
+
 </body>
 </html>

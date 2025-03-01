@@ -6,11 +6,27 @@ using System.Data.SqlClient;
 
 namespace Lab2_Johnson_Imlay_Freeman.Pages.Admin
 {
-    public class AdminDashboardModel : PageModel
+    public class Admin_DashboardModel : PageModel
     {
-        public void OnGet()
+        public IActionResult OnGet()
         {
-            // Add any initialization logic here if needed.
+            string userRole = HttpContext.Session.GetString("UserRole");
+
+            
+            if (userRole == "Faculty")
+            {
+                return RedirectToPage("/Faculty/FacultyDashboard"); // Adjust destination as needed
+            }
+            else if(userRole == "RepOfBusiness")
+            {
+                return RedirectToPage("/Business/BusinessPartner_Dashboard");
+            }
+            else
+            {
+                return Page();
+            }
+
         }
     }
+
 }

@@ -33,7 +33,7 @@
 
 //                string query = @"
 //                    SELECT GrantID, GrantName, Status
-//                    FROM [Grant]
+//                    FROM [GrantApplication]
 //                    WHERE @FacultyID IN (LeadFacultyID, BusinessPartnerID)
 //                    ORDER BY SubmissionDate DESC";
 

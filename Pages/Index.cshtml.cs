@@ -1,4 +1,4 @@
-using Lab2_Johnson_Imlay_Freeman.Pages.DB;
+﻿using Lab2_Johnson_Imlay_Freeman.Pages.DB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
@@ -9,16 +9,26 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages
     {
         [BindProperty]
         public string Username { get; set; }
+
         [BindProperty]
         public string Password { get; set; }
 
         public IActionResult OnGet()
         {
+            // ✅ Handle Logout when user clicks "Logout" link
+            if (Request.Query["handler"] == "Logout")
+            {
+                HttpContext.Session.Clear();
+                return RedirectToPage("/Index"); // ✅ Redirect to login page after logout
+            }
+
+            // ✅ Redirect logged-in users to their dashboard
             if (HttpContext.Session.GetString("Username") != null)
             {
                 return RedirectToPage("/Admin/Admin_Dashboard");
             }
 
+            // ✅ Display login error message if it exists
             if (HttpContext.Session.GetString("LoginError") != null)
             {
                 ViewData["LoginMessage"] = HttpContext.Session.GetString("LoginError");
@@ -28,23 +38,30 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages
             return Page();
         }
 
+
         public IActionResult OnPost()
         {
-            if (DBClass.AuthenticateUser(Username, Password))
+            if (DBClass.StoredProcedureLogin(Username, Password, HttpContext))
             {
-                Debug.WriteLine($"User {Username} authenticated!");
-                // TODO: Remove Debug lines
-
-                HttpContext.Session.SetString("Username", Username);
-                return RedirectToPage("/Admin/Admin_Dashboard");
+                // ✅ Redirect users based on their role
+                string userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole == "Admin")
+                {
+                    return RedirectToPage("/Admin/Admin_Dashboard");
+                }
+                else
+                {
+                    return RedirectToPage("/Faculty/FacultyDashboard"); // Adjust for other roles
+                }
             }
             else
             {
-                // TODO: Remove Debug lines
-            Debug.WriteLine("Authentication failed.");
-                ViewData["LoginMessage"] = "Username and/or Password Incorrect";
-                return Page();
+                HttpContext.Session.SetString("LoginError", "Username and/or Password Incorrect");
+                return RedirectToPage("/Index");
             }
+
         }
+
+
     }
 }
