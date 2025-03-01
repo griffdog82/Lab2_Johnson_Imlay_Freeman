@@ -1,0 +1,169 @@
+-- This table stores business partners who collaborate on projects and grants. 
+-- Each partner has a name, organization type, and contact details.
+create table BusinessPartner (
+    BusinessPartnerID int identity(1,1) primary key,
+    Name nvarchar(200) not null,
+    OrgType nvarchar(100) not null,
+    PrimaryContact nvarchar(200) null,
+    BusinessType nvarchar(100) not null,
+    StatusFlag nvarchar(100) not null,
+    ActiveStatus bit not null default 1
+);
+
+-- User accounts for faculty, admins, and business representatives.
+-- Each user may be linked to a business partner, depending on their role.
+create table [User] (
+    UserID int identity(1,1) primary key,
+    Username nvarchar(200) unique not null,
+    Email nvarchar(200) unique,
+    FirstName nvarchar(200) not null,
+    LastName nvarchar(200) not null,
+    UserType nvarchar(50) not null,
+    Department nvarchar(200),
+    AdminType nvarchar(200),
+    BusinessPartnerID int null,
+    foreign key (BusinessPartnerID) references BusinessPartner(BusinessPartnerID)
+);
+
+-- Stores login credentials and enforces a one-to-one relationship with User.
+create table Credentials (
+    UserID int primary key,  -- Matches the User table's primary key
+    Username nvarchar(200) unique not null,
+    Password nvarchar(200) not null,
+    foreign key (UserID) references [User](UserID) on delete cascade
+);
+
+-- Tracks grant applications submitted by faculty.
+-- Grants have a category, funding source, and approval status.
+create table GrantApplication (
+    GrantID int identity(1,1) primary key,
+    GrantName nvarchar(100) not null,
+    Category nvarchar(100) not null,
+    FundingSource nvarchar(200) not null,
+    SubmissionDate date not null,
+    AwardDate date null,
+    Amount decimal(18,2) not null,
+    Status nvarchar(100) not null,
+    LeadFacultyID int not null,  
+    BusinessPartnerID int null,  
+    foreign key (LeadFacultyID) references [User](UserID),
+    foreign key (BusinessPartnerID) references BusinessPartner(BusinessPartnerID)
+);
+
+-- Allows multiple faculty members to be assigned to a grant.
+create table GrantTeam (
+    GrantID int not null,
+    FacultyID int not null,
+    primary key (GrantID, FacultyID),
+    foreign key (GrantID) references GrantApplication(GrantID),
+    foreign key (FacultyID) references [User](UserID)
+);
+
+-- Notes attached to grants for tracking updates or progress.
+create table GrantNotes (
+    NoteID int identity(1,1) primary key,
+    GrantID int not null,
+    UserID int not null,
+    NoteText nvarchar(1000) not null,
+    Timestamp datetime not null default getdate(),
+    foreign key (GrantID) references GrantApplication(GrantID),
+    foreign key (UserID) references [User](UserID)
+);
+
+-- Projects created by users, often linked to grants and business partners.
+create table project (
+    ProjectID int identity(1,1) primary key,
+    Title nvarchar(200) not null,
+    DueDate date not null,
+    CreatedBy int not null,
+    BusinessPartnerID int null,
+    GrantID int null,
+    foreign key (CreatedBy) references [User](UserID),
+    foreign key (BusinessPartnerID) references BusinessPartner(BusinessPartnerID),
+    foreign key (GrantID) references GrantApplication(GrantID)
+);
+
+-- Allows multiple people to be assigned to a project.
+create table ProjectAssignment (
+    ProjectID int not null,
+    UserID int not null,
+    Role nvarchar(100) not null,
+    primary key (ProjectID, UserID),
+    foreign key (ProjectID) references project(ProjectID),
+    foreign key (UserID) references [User](UserID)
+);
+
+-- Notes attached to projects for tracking updates or progress.
+create table ProjectNotes (
+    NoteID int identity(1,1) primary key,
+    ProjectID int not null,
+    UserID int not null,
+    NoteText nvarchar(1000) not null,
+    Timestamp datetime not null default getdate(),
+    foreign key (ProjectID) references project(ProjectID),
+    foreign key (UserID) references [User](UserID)
+);
+
+-- Tasks within projects, each with a description and deadline.
+create table Task (
+    TaskID int identity(1,1) primary key,
+    ProjectID int not null,
+    Description nvarchar(500) not null,
+    DueDate date not null,
+    Status nvarchar(100) not null,
+    foreign key (ProjectID) references project(ProjectID)
+);
+
+-- Meeting minutes between business partners and internal representatives.
+-- Each meeting has a date, topic, and two user representatives.
+create table MeetingMinute (
+    MinuteID int identity(1,1) primary key,
+    BusinessPartnerID int not null,
+    RepresentativeID int not null,
+    MeetingWithID int not null,
+    MeetingDate date not null,
+    MinutesText nvarchar(1000) not null,
+    foreign key (BusinessPartnerID) references BusinessPartner(BusinessPartnerID),
+    foreign key (RepresentativeID) references [User](UserID),
+    foreign key (MeetingWithID) references [User](UserID)
+);
+
+-- Simple messaging system between users.
+-- Messages have a sender, recipient, and optional subject line.
+create table message (
+    MessageID int identity(1,1) primary key,
+    SenderID int not null,
+    RecipientID int not null,
+    Subject nvarchar(200) null,
+    Body nvarchar(2000) not null,
+    Timestamp datetime not null default getdate(),
+    foreign key (SenderID) references [User](UserID),
+    foreign key (RecipientID) references [User](UserID)
+);
+
+-- Business partners that users may work with on projects and grants.
+insert into BusinessPartner (Name, OrgType, PrimaryContact, BusinessType, StatusFlag, ActiveStatus)
+values 
+    ('Better Call Saul LLC', 'Law Firm', 'Saul Goodman', 'Legal Services', 'Active', 1), 
+    ('Los Pollos Hermanos', 'Corporation', 'Gustavo Fring', 'Fast Food', 'Active', 1), 
+    ('Vamonos Pest', 'LLC', 'Jesse Pinkman', 'Pest Control', 'Active', 1), 
+    ('Hamlin, Hamlin & McGill', 'Law Firm', 'Howard Hamlin', 'Legal', 'Inactive', 0), 
+    ('A1A Car Wash', 'Corporation', 'Skyler White', 'Automotive', 'Active', 1);
+
+-- Sample users representing faculty and business representatives.
+insert into [User] (Username, Email, FirstName, LastName, UserType, Department, AdminType, BusinessPartnerID)
+values
+    ('slippinjimmy', 'jimmy@bettercallsaul.com', 'Jimmy', 'McGill', 'Faculty', 'Legal', 'Managing Partner', 1),
+    ('fringmastermind', 'gus@polloshermanos.com', 'Gustavo', 'Fring', 'Faculty', 'Operations', null, 2),
+    ('yeahscience', 'jesse@vamonospest.com', 'Jesse', 'Pinkman', 'Admin', 'Logistics', null, 3),
+    ('howardh', 'howard@hhmlaw.com', 'Howard', 'Hamlin', 'RepOfBusiness', 'Legal', null, 4),
+    ('skylerw', 'skyler@a1acarwash.com', 'Skyler', 'White', 'RepOfBusiness', 'Finance', null, 5);
+
+-- Insert credentials that now directly link to user accounts.
+insert into Credentials (UserID, Username, Password)
+values
+    (1, 'slippinjimmy', 'bigmoney123'),
+    (2, 'fringmastermind', 'chicken123'),
+    (3, 'yeahscience', 'yo123'),
+    (4, 'howardh', 'legacy123'),
+    (5, 'skylerw', 'blue123');
