@@ -1,0 +1,14 @@
+CREATE PROCEDURE dbo.sp_simpleLogin
+    @Username NVARCHAR(200),
+    @Password NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Return UserID and UserType if credentials are valid
+    SELECT UserID, UserType 
+    FROM Credentials c
+    JOIN [User] u ON c.UserID = u.UserID
+    WHERE c.Username = @Username
+    AND c.Password = @Password;
+END;
