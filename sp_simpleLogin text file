@@ -1,0 +1,14 @@
+CREATE PROCEDURE dbo.sp_simpleLogin
+    @Username NVARCHAR(50),
+    @Password NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Return 1 if credentials match, 0 otherwise
+    SELECT COUNT(*)
+    FROM Credentials
+    WHERE Username = @Username
+    AND Password = @Password;
+END;
+GO
