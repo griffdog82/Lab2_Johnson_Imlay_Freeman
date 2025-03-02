@@ -1,4 +1,4 @@
-Up to Date as of 442 pm 3_2_2025
+-- Up to Date as of 442 pm 3_2_2025
 -- This table stores business partners who collaborate on projects and grants. 
 -- Each partner has a name, organization type, and contact details.
 create table BusinessPartner (
