@@ -9,7 +9,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.Admin
 {
     public class AddGrantModel : PageModel
     {
-        private readonly string _connectionString = "Server=localhost;Database=Lab1;Trusted_Connection=True;";
+        private readonly string _connectionString = "Server=localhost;Database=Lab2;Trusted_Connection=True;";
         // TODO; Fix the connection string
         [BindProperty]
         public Grant Grant { get; set; } = new Grant();
@@ -35,7 +35,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.Admin
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string query = "INSERT INTO [Grant] (GrantName, Category, FundingSource, SubmissionDate, AwardDate, Amount, Status, LeadFacultyID) " +
+                string query = "INSERT INTO [GrantApplication] (GrantName, Category, FundingSource, SubmissionDate, AwardDate, Amount, Status, LeadFacultyID) " +
                                "VALUES (@GrantName, @Category, @FundingSource, @SubmissionDate, @AwardDate, @Amount, @Status, @LeadFacultyID)";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
