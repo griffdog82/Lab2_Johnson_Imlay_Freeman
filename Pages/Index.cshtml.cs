@@ -22,10 +22,20 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages
                 return RedirectToPage("/Index"); // ✅ Redirect to login page after logout
             }
 
-            // ✅ Redirect logged-in users to their dashboard
-            if (HttpContext.Session.GetString("Username") != null)
+            // ✅ Redirect logged-in users to their dashboard based on role
+            string userRole = HttpContext.Session.GetString("UserRole");
+
+            if (userRole == "Admin")
             {
                 return RedirectToPage("/Admin/Admin_Dashboard");
+            }
+            else if (userRole == "Faculty")
+            {
+                return RedirectToPage("/Faculty/FacultyDashboard");
+            }
+            else if (userRole == "RepOfBusiness")  // ✅ Business Partners now get redirected
+            {
+                return RedirectToPage("/BusinessPartner/BusinessPartner_Dashboard");
             }
 
             // ✅ Display login error message if it exists
@@ -39,6 +49,7 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages
         }
 
 
+
         public IActionResult OnPost()
         {
             if (DBClass.StoredProcedureLogin(Username, Password, HttpContext))
@@ -49,17 +60,20 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages
                 {
                     return RedirectToPage("/Admin/Admin_Dashboard");
                 }
+                else if (userRole == "Faculty")
+                {
+                    return RedirectToPage("/Faculty/FacultyDashboard");
+                }
                 else
                 {
-                    return RedirectToPage("/Faculty/FacultyDashboard"); // Adjust for other roles
+                    return RedirectToPage("/BusinessPartner/BusinessPartner_Dashboard");
                 }
             }
             else
             {
-                HttpContext.Session.SetString("LoginError", "Username and/or Password Incorrect");
+                HttpContext.Session.SetString("Login Error", "Username and/or Password Incorrect");
                 return RedirectToPage("/Index");
-            }
-
+            }   
         }
 
 
