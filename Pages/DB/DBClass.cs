@@ -104,6 +104,8 @@ public class DBClass
         }
     }
 
+   
+
     public static List<UserModel> LoadUsers()
     {
         List<UserModel> users = new();
@@ -358,21 +360,48 @@ public class DBClass
             }
         }
     }
-    public static int GetCurrentUserID()
+    public static int GetCurrentUserID(HttpContext context)
     {
-        // Example: Fetch logged-in UserID from session or database
+        // Retrieve username from the session
+        string username = context.Session.GetString("Username");
+
+        // Debugging: Print the retrieved username
+        Console.WriteLine("DEBUG: Retrieved username from session: " + username);
+
+        // If no user is logged in, return 0
+        if (string.IsNullOrEmpty(username))
+        {
+            Console.WriteLine("DEBUG: No username found in session.");
+            return 0;
+        }
+
         using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
-            using (SqlCommand cmd = new SqlCommand("SELECT UserID FROM [User] WHERE /* YOUR LOGIN LOGIC HERE */", conn)) // TODO: LOGIN @ALL 
+            using (SqlCommand cmd = new SqlCommand("SELECT UserID FROM [User] WHERE Username = @Username", conn))
             {
+                cmd.Parameters.AddWithValue("@Username", username);
+
+                // Debugging: Print final SQL query
+                Console.WriteLine("DEBUG: Executing SQL - SELECT UserID FROM [User] WHERE Username = '" + username + "'");
+
                 object result = cmd.ExecuteScalar();
-                return result != null ? Convert.ToInt32(result) : 0; // Return 0 if no user found
+                if (result != null)
+                {
+                    Console.WriteLine("DEBUG: Retrieved UserID - " + result.ToString());
+                    return Convert.ToInt32(result);
+                }
+                else
+                {
+                    Console.WriteLine("DEBUG: No UserID found for username.");
+                    return 0;
+                }
             }
         }
-    } 
-  
-    
+    }
+
+
+
 
 
 
@@ -753,18 +782,20 @@ public class DBClass
             conn.Open();
 
             string query = @"
-            SELECT m.MessageID, 
-                   u.FirstName + ' ' + u.LastName AS SenderName, 
-                   m.Subject, 
-                   m.Timestamp
-            FROM Message m
-            JOIN [User] u ON m.SenderID = u.UserID
-            WHERE m.RecipientID = @RecipientID";
+        SELECT m.MessageID, 
+               u.FirstName + ' ' + u.LastName AS SenderName, 
+               m.Subject, 
+               m.Body,  -- ✅ Fix: Added message body
+               m.Timestamp
+        FROM Message m
+        LEFT JOIN [User] u ON m.SenderID = u.UserID
+        WHERE m.RecipientID = @RecipientID";
 
-            if (senderID.HasValue)
+            if (senderID.HasValue && senderID.Value != 0) // ✅ Only filter when senderID is not 0
             {
                 query += " AND m.SenderID = @SenderID";
             }
+
 
             query += " ORDER BY m.Timestamp DESC";
 
@@ -786,7 +817,8 @@ public class DBClass
                             MessageID = reader.GetInt32(0),
                             SenderName = reader.GetString(1),
                             Subject = reader.IsDBNull(2) ? "(No Subject)" : reader.GetString(2),
-                            Timestamp = reader.GetDateTime(3)
+                            Body = reader.IsDBNull(3) ? "" : reader.GetString(3),  // ✅ Fix: Added message body
+                            Timestamp = reader.GetDateTime(4)
                         });
                     }
                 }
@@ -795,52 +827,75 @@ public class DBClass
 
         return messages;
     }
+
     public class MessageModel
     {
         public int MessageID { get; set; }
+        public int SenderID { get; set; }
         public string SenderName { get; set; } = "";
+        public int RecipientID {  get; set; } 
         public string Subject { get; set; } = "";
         public string Body { get; set; } = "";
         public DateTime Timestamp { get; set; }
     }
-    public static List<UserModel> GetMessageSenders()
+    public static List<UserModel> GetMessageSenders(int recipientID)
     {
         List<UserModel> senders = new();
 
         using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
+            Console.WriteLine("DEBUG: Running GetMessageSenders() for RecipientID = " + recipientID);
+
             using (SqlCommand cmd = new SqlCommand(@"
-                    SELECT DISTINCT u.UserID, u.FirstName, u.LastName
-                    FROM [User] u
-                    JOIN Message m ON u.UserID = m.SenderID", conn))
-            using (SqlDataReader reader = cmd.ExecuteReader())
+            SELECT DISTINCT u.UserID, u.FirstName, u.LastName
+            FROM [User] u
+            JOIN Message m ON u.UserID = m.SenderID
+            WHERE m.RecipientID = @RecipientID", conn))
             {
-                while (reader.Read())
+                cmd.Parameters.AddWithValue("@RecipientID", recipientID);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    senders.Add(new UserModel
+                    while (reader.Read())
                     {
-                        UserID = reader.GetInt32(0),
-                        FirstName = reader.GetString(1),
-                        LastName = reader.GetString(2)
-                    });
+                        var sender = new UserModel
+                        {
+                            UserID = reader.GetInt32(0),
+                            FirstName = reader.GetString(1),
+                            LastName = reader.GetString(2)
+                        };
+
+                        Console.WriteLine("DEBUG: Found sender - " + sender.FirstName + " " + sender.LastName);
+                        senders.Add(sender);
+                    }
                 }
             }
         }
 
+        Console.WriteLine("DEBUG: Total senders found = " + senders.Count);
         return senders;
     }
+
+
+
+
+
+
+
+
     public static MessageModel? GetMessageByID(int messageID)
     {
         using (SqlConnection conn = new SqlConnection(Lab2DBConnString))
         {
             conn.Open();
             using (SqlCommand cmd = new SqlCommand(@"
-                    SELECT m.MessageID, u.FirstName + ' ' + u.LastName AS SenderName, 
-                    m.Subject, m.Body, m.Timestamp
-                    FROM Message m
-                    JOIN [User] u ON m.SenderID = u.UserID
-                    WHERE m.MessageID = @MessageID", conn))
+                SELECT m.MessageID, m.SenderID, 
+                       u.FirstName + ' ' + u.LastName AS SenderName, 
+                       m.RecipientID, m.Subject, m.Body, m.Timestamp
+                FROM Message m
+                JOIN [User] u ON m.SenderID = u.UserID
+                WHERE m.MessageID = @MessageID", conn))
             {
                 cmd.Parameters.AddWithValue("@MessageID", messageID);
 
@@ -851,10 +906,12 @@ public class DBClass
                         return new MessageModel
                         {
                             MessageID = reader.GetInt32(0),
-                            SenderName = reader.GetString(1),
-                            Subject = reader.IsDBNull(2) ? "(No Subject)" : reader.GetString(2),
-                            Body = reader.GetString(3),
-                            Timestamp = reader.GetDateTime(4)
+                            SenderID = reader.GetInt32(1), // ✅ Ensure SenderID is retrieved
+                            SenderName = reader.GetString(2),
+                            RecipientID = reader.GetInt32(3),
+                            Subject = reader.IsDBNull(4) ? "(No Subject)" : reader.GetString(4),
+                            Body = reader.GetString(5),
+                            Timestamp = reader.GetDateTime(6)
                         };
                     }
                 }
@@ -862,6 +919,7 @@ public class DBClass
         }
         return null;
     }
+
 
     //Method for Inserting data into the GrantApplication
     public static int InsertGrantApplication(string category, string grantName, string fundingSource, DateTime submissionDate,

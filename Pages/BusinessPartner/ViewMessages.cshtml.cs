@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
- 
+
 namespace Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner
 {
     public class ViewMessagesModel : PageModel
@@ -22,22 +22,24 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.BusinessPartner
         public List<DBClass.UserModel> Senders { get; set; } = new();
         public int? SelectedSenderID { get; set; }
 
-        public void OnGet(int? id, int? senderId)
+        public void OnGet(int? id = null, int? senderId = null)
         {
-            // ✅ Fetch Business Partner UserID dynamically
-            UserID = DBClass.GetCurrentUserID();
+            int userID = DBClass.GetCurrentUserID(HttpContext);
+            Console.WriteLine("DEBUG: Retrieved UserID from session = " + userID);
 
-            // ✅ Ensure SelectedSenderID updates properly
-            SelectedSenderID = senderId;
-
-            // ✅ Fetch senders and messages
-            Senders = DBClass.GetBusinessPartnerMessageSenders();
-            Messages = DBClass.GetBusinessPartnerMessages(UserID, senderId);
-
-            if (id.HasValue)
+            if (senderId == 0)
             {
-                SelectedMessage = DBClass.GetBusinessPartnerMessageByID(id.Value);
+                senderId = null;
             }
+
+            Messages = DBClass.GetMessages(userID, senderId);
+            Console.WriteLine("DEBUG: Retrieved " + Messages.Count + " messages.");
+
+            Senders = DBClass.GetMessageSenders(userID);
+            Console.WriteLine("DEBUG: Retrieved " + Senders.Count + " senders for UserID " + userID);
+
+            SelectedSenderID = senderId;
         }
     }
 }
+

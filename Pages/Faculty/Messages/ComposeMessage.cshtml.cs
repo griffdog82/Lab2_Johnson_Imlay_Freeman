@@ -1,18 +1,15 @@
+using Lab2_Johnson_Imlay_Freeman.Pages.DB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Messages
 {
     public class ComposeMessageModel : PageModel
     {
-        private readonly string _connectionString = "Server=localhost;Database=Lab1;Trusted_Connection=True;";
-
         [BindProperty]
-        public int RecipientID { get; set; }
+        public int RecipientID { get; set; } = 0; // Default to 0 (no recipient selected)
 
         [BindProperty]
         public string Subject { get; set; } = "";
@@ -20,113 +17,69 @@ namespace Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Messages
         [BindProperty]
         public string Body { get; set; } = "";
 
-        [BindProperty]
-        public int UserID { get; set; } // Replace with actual logged-in user ID
-
-
-        public List<UserModel> Users { get; set; } = new();
-
+        public List<DBClass.UserModel> Users { get; set; } = new();
         public string Message { get; set; } = "";
+        public int UserID { get; private set; }
 
         public void OnGet(int? replyTo)
         {
-            LoadUsers();
+            Users = DBClass.LoadUsers();
+            UserID = DBClass.GetCurrentUserID(HttpContext); // Get logged-in user ID
+
+            if (UserID == 0)
+            {
+                Console.WriteLine("DEBUG: No valid session detected, redirecting to Login.");
+                RedirectToPage("/Login");
+            }
 
             if (replyTo.HasValue)
             {
-                LoadReplyMessage(replyTo.Value);
+                // Load message details for the reply
+                var replyMessage = DBClass.GetMessageByID(replyTo.Value);
+                if (replyMessage != null)
+                {
+                    RecipientID = replyMessage.SenderID; // Set recipient as the original sender
+                    Subject = "RE: " + replyMessage.Subject;
+                    Body = "\n\n----- Original Message -----\n" + replyMessage.Body;
+                }
             }
+
+            Console.WriteLine($"DEBUG: ComposeMessage loaded. UserID={UserID}, RecipientID={RecipientID}");
         }
 
         public IActionResult OnPost()
         {
-            if (!ModelState.IsValid)
+            int senderID = DBClass.GetCurrentUserID(HttpContext);
+            Console.WriteLine($"DEBUG: Attempting to send message from UserID={senderID} to RecipientID={RecipientID}");
+
+            if (senderID == 0)
             {
-                LoadUsers();
+                Console.WriteLine("DEBUG: No valid session, redirecting to Login.");
+                return RedirectToPage("/Login");
+            }
+
+            if (RecipientID == 0)
+            {
+                Console.WriteLine("DEBUG: No recipient selected.");
+                ModelState.AddModelError("RecipientID", "Please select a recipient.");
+                Users = DBClass.LoadUsers();
                 return Page();
             }
 
-            try
+            bool success = DBClass.SendMessage(senderID, RecipientID, Subject, Body);
+
+            if (success)
             {
-                using (SqlConnection conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-                    string query = "INSERT INTO Message (SenderID, RecipientID, Subject, Body) VALUES (@SenderID, @RecipientID, @Subject, @Body)";
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@SenderID", 1); // Replace with logged-in user ID later
-                        cmd.Parameters.AddWithValue("@RecipientID", RecipientID);
-                        cmd.Parameters.AddWithValue("@Subject", Subject);
-                        cmd.Parameters.AddWithValue("@Body", Body);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
-                Message = "Message sent successfully!";
-                return RedirectToPage("/Admin/Messages/MessageList");
+                Console.WriteLine("DEBUG: Message sent successfully.");
+                return RedirectToPage("MessageList");
             }
-            catch (Exception ex)
+            else
             {
-                Message = "Database Error: " + ex.Message;
-            }
-
-            LoadUsers();
-            return Page();
-        }
-
-        private void LoadUsers()
-        {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand("SELECT UserID, FirstName + ' ' + LastName AS FullName FROM [User]", conn))
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        Users.Add(new UserModel
-                        {
-                            UserID = reader.GetInt32(0),
-                            FullName = reader.GetString(1)
-                        });
-                    }
-                }
+                Console.WriteLine("DEBUG: Failed to send message.");
+                Message = "Error sending message.";
+                Users = DBClass.LoadUsers();
+                return Page();
             }
         }
-        private void LoadReplyMessage(int replyTo)
-        {
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (SqlCommand cmd = new SqlCommand(
-                    "SELECT Subject, Body FROM Message WHERE MessageID = @MessageID", conn))
-                {
-                    cmd.Parameters.AddWithValue("@MessageID", replyTo);
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            Subject = "RE: " + reader.GetString(0);
-                            Body = "\n\n----- Original Message -----\n" + reader.GetString(1);
-                        }
-                    }
-                }
-            }
-        }
-
-        public class UserModel
-        {
-            public int UserID { get; set; }
-            public string FullName { get; set; } = "";
-        }
-        //public class IActionResult OnPostPopulate()
-        //{ 
-        //    ModelState.Clear();
-
-
-        //    Return Page();)
-
-        //}
     }
 }

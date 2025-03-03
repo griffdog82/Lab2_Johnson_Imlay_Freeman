@@ -1,4 +1,4 @@
-﻿@page  
+﻿@page
 <!-- Imported from Lab1 by Griffin Imlay on 2_27_2025 -->
 "{replyTo?}"
 @model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Messages.ComposeMessageModel
@@ -14,24 +14,20 @@
 }
 
 <form method="post">
-    <div class="mb-3">
-        <label for="UserID" class="form-label">Select Sender:</label>
-        <select asp-for="UserID" class="form-select">
-            <option value="">-- Select a User --</option>
-            @foreach (var user in Model.Users)
-            {
-                <option value="@user.UserID">@user.FirstName @user.LastName</option>
-            }
-        </select>
-    </div>
+    <!-- ✅ Hidden field for sender ID -->
+    <input type="hidden" asp-for="UserID" />
 
     <label for="RecipientID">Recipient:</label>
     <select asp-for="RecipientID" class="form-select">
+        <option value="0" selected="@(Model.RecipientID == 0 ? "selected" : null)">-- Select a Recipient --</option>
         @foreach (var user in Model.Users)
         {
-            <option value="@user.UserID">@user.FirstName @user.LastName</option>
+            <option value="@user.UserID" selected="@(Model.RecipientID == user.UserID ? "selected" : null)">
+                @user.FirstName @user.LastName
+            </option>
         }
     </select>
+    <span asp-validation-for="RecipientID" class="text-danger"></span>
 
     <label for="Subject">Subject:</label>
     <input type="text" asp-for="Subject" class="form-control" />
@@ -41,8 +37,8 @@
 
     <br />
     <button type="submit" class="btn btn-primary">Send</button>
-    <button type="button" class="btn btn-primary">Populate</button> <!-- Changed type to 'button' -->
     <a asp-page="MessageList" class="btn btn-secondary">Cancel</a>
 </form>
+
 
 

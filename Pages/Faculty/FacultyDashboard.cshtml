@@ -1,4 +1,4 @@
-﻿@page 
+﻿@page
 <!-- Imported from Lab1 by Griffin Imlay on 2_27_2025 -->
 @model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.FacultyDashboardModel
 @{
@@ -16,18 +16,20 @@
     <h2 class="mb-3 text-center">🎓 Faculty Dashboard</h2>
 
     <div class="list-group">
+        <!-- Grants Section -->
         <a asp-page="/Faculty/Grants/GrantApplication" class="list-group-item list-group-item-action">
             📝 Grant Application Form
         </a>
         <a asp-page="/Faculty/Grants/MyGrants" class="list-group-item list-group-item-action">
             💰 View My Grants
         </a>
+
+        <!-- Inbox -->
         <a asp-page="/Admin/Messages/MessageList" class="list-group-item list-group-item-action">
-            📩 View Messages
+            📩 Inbox
         </a>
-        <a asp-page="/Faculty/Messages/ComposeMessage" class="list-group-item list-group-item-action">
-            ✉️ Compose Message
-        </a>
+
+        <!-- Profile Section -->
         <a asp-page="/Faculty/Profile/EditProfile" class="list-group-item list-group-item-action">
             ✏️ Edit Profile
         </a>

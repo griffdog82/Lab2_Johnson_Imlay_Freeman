@@ -1,0 +1,26 @@
+﻿@page "{messageID:int}"
+@model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Messages.ViewSingleMessageModel
+@{
+    ViewData["Title"] = "Message Details";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">📩 Message Details</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <strong>From:</strong> @Model.MessageDetails.SenderName
+        </div>
+        <div class="card-body">
+            <h5 class="card-title"><strong>Subject:</strong> @Model.MessageDetails.Subject</h5>
+            <p class="card-text">@Model.MessageDetails.Body</p>
+        </div>
+        <div class="card-footer text-muted">
+            Sent on: @Model.MessageDetails.Timestamp.ToString("g")
+        </div>
+    </div>
+
+    <a asp-page="ComposeMessage" asp-route-replyTo="@Model.MessageDetails.MessageID" class="btn btn-primary mt-3">Reply</a>
+    <a asp-page="MessageList" class="btn btn-secondary mt-3">Back to Inbox</a>
+</div>
+

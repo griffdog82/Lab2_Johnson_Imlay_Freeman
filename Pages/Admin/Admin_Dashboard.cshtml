@@ -1,4 +1,4 @@
-﻿@page 
+﻿@page
 <!-- Imported from Lab1 by Griffin Imlay on 2_27_2025 -->
 @model Lab2_Johnson_Imlay_Freeman.Pages.Admin.Admin_DashboardModel
 @{
@@ -9,43 +9,38 @@
     <h2 class="mb-3 text-center">📌 Admin Dashboard</h2>
 
     <div class="list-group">
-        <a asp-page="/Admin/Users/AddUser" class="list-group-item list-group-item-action">
-            👤 Add New User
+        <!-- Grants Section -->
+        <a asp-page="/Admin/Grants/AddGrant" class="list-group-item list-group-item-action">
+            💰 Add New Grant
         </a>
-        <a asp-page="/Admin/Users/ViewUsers" class="list-group-item list-group-item-action">
-            👥 View Users
+
+        <!-- Business Partners Section -->
+        <a asp-page="/Admin/BusinessPartner/AddBusinessPartner" class="list-group-item list-group-item-action">
+            🤝 Add New Business Partner
         </a>
+        <a asp-page="/Admin/BusinessPartner/ViewBusinessPartners" class="list-group-item list-group-item-action">
+            🤝 View Business Partners
+        </a>
+
+        <!-- Projects Section -->
         <a asp-page="/Admin/Projects/AddProject" class="list-group-item list-group-item-action">
             🏗️ Add New Project
         </a>
         <a asp-page="/Admin/Projects/ProjectList" class="list-group-item list-group-item-action">
             📋 View Current Projects
         </a>
-        @* Future Features
-        <a asp-page="/Admin/Projects/ProjectTaskManagement" class="list-group-item list-group-item-action">
-            🛠️ Project Task Management
+
+        <!-- User Management -->
+        <a asp-page="/Admin/Users/AddUser" class="list-group-item list-group-item-action">
+            👤 Add New User
         </a>
-        <a asp-page="/Admin/Tasks/AddTask" class="list-group-item list-group-item-action">
-            ➕ Add New Task
+        <a asp-page="/Admin/Users/ViewUsers" class="list-group-item list-group-item-action">
+            👥 View Users
         </a>
-        <a asp-page="/Admin/Tasks/EditTask" class="list-group-item list-group-item-action">
-            ✏️ Edit Task
-        </a> 
-        *@
+
+        <!-- Inbox -->
         <a asp-page="/Admin/Messages/MessageList" class="list-group-item list-group-item-action">
-            📩 View Messages
-        </a>
-        <a asp-page="/Admin/Messages/ComposeMessage" class="list-group-item list-group-item-action">
-            ✉️ Compose New Message
-        </a>
-        <a asp-page="/Admin/Grants/AddGrant" class="list-group-item list-group-item-action">
-            💰 Add New Grant
-        </a>
-        <a asp-page="/Admin/BusinessPartner/AddBusinessPartner" class="list-group-item list-group-item-action">
-            🤝 Add New Business Partner
-        </a>
-        <a asp-page="/Admin/BusinessPartner/ViewBusinessPartners" class="list-group-item list-group-item-action">
-            🤝 View Business Partners
+            📩 Inbox
         </a>
     </div>
 </div>

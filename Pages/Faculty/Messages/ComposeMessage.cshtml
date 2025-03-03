@@ -1,4 +1,4 @@
-﻿@page 
+﻿@page
 <!-- Imported from Lab1 by Griffin Imlay on 2_27_2025 -->
 "{replyTo?}"
 @model Lab2_Johnson_Imlay_Freeman.Pages.Faculty.Messages.ComposeMessageModel
@@ -14,13 +14,20 @@
 }
 
 <form method="post">
+    <!-- ✅ Hidden field for sender ID -->
+    <input type="hidden" asp-for="UserID" />
+
     <label for="RecipientID">Recipient:</label>
     <select asp-for="RecipientID" class="form-select">
+        <option value="0" selected="@(Model.RecipientID == 0 ? "selected" : null)">-- Select a Recipient --</option>
         @foreach (var user in Model.Users)
         {
-            <option value="@user.UserID">@user.FullName</option>
+            <option value="@user.UserID" selected="@(Model.RecipientID == user.UserID ? "selected" : null)">
+                @user.FirstName @user.LastName
+            </option>
         }
     </select>
+    <span asp-validation-for="RecipientID" class="text-danger"></span>
 
     <label for="Subject">Subject:</label>
     <input type="text" asp-for="Subject" class="form-control" />
@@ -30,7 +37,5 @@
 
     <br />
     <button type="submit" class="btn btn-primary">Send</button>
-
     <a asp-page="MessageList" class="btn btn-secondary">Cancel</a>
 </form>
-
