@@ -11,23 +11,56 @@ going on in _Layout.cshtml -->
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-6">
+        <div class="card shadow-lg p-4">
+            <div class="text-center">
+                <img src="~/images/breaking_bad.png" alt="Breaking Bad Logo" height="80" class="mb-3">  @* Added the breaking bad logo *@
+                <h2 class="fw-bold">Welcome</h2>
+                <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+            </div>
+
+            <form method="post">
+                <div class="form-group">
+                    <label asp-for="Username" class="form-label fw-bold">Username</label>
+                    <input asp-for="Username" class="form-control" placeholder="Enter your username">
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label fw-bold">Password</label>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password">
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block mt-3">Login</button>  @*  Made button green to match breaking bad log *@o
+
+                @if (ViewData["LoginMessage"] != null)
+                {
+                    <div class="alert alert-danger mt-3">
+                        @ViewData["LoginMessage"]
+                    </div>
+                }
+            </form>
+            <div class="text-muted text-center mt-3">
+                @* Hardcoded Populate Buttons *@
+                <form method="get">
+                    <input type="hidden" name="PreFilledUsername" value="slippinjimmy">
+                    <input type="hidden" name="PreFilledPassword" value="bigmoney123">
+                    <button type="submit" class="btn btn-success me-2">Faculty</button>
+                </form>
+
+                <form method="get">
+                    <input type="hidden" name="PreFilledUsername" value="lydiaq">
+                    <input type="hidden" name="PreFilledPassword" value="tea456">
+                    <button type="submit" class="btn btn-success me-2">Admin</button>
+                </form>
+
+                <form method="get">
+                    <input type="hidden" name="PreFilledUsername" value="howardh">
+                    <input type="hidden" name="PreFilledPassword" value="legacy123">
+                    <button type="submit" class="btn btn-success">RepOfBusiness</button>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<form>
-    <div class="form-group">
-        <label for="exampleInputEmail1">Email address</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-    </div>
-    <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-    </div>
-    <div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-        <label class="form-check-label" for="exampleCheck1">Check me out</label>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>

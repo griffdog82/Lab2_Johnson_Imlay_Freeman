@@ -629,7 +629,7 @@ public class DBClass
                     FROM Project P
                     INNER JOIN [User] U ON P.CreatedBy = U.UserID
                     LEFT JOIN BusinessPartner BP ON P.BusinessPartnerID = BP.BusinessPartnerID
-                    LEFT JOIN [Grant] G ON P.GrantID = G.GrantID";
+                    LEFT JOIN [GrantApplication] G ON P.GrantID = G.GrantID";
 
             if (facultyId.HasValue)
             {
@@ -797,13 +797,14 @@ public class DBClass
             conn.Open();
 
             string query = @"
-            SELECT m.MessageID, 
-                   u.FirstName + ' ' + u.LastName AS SenderName, 
-                   m.Subject, 
-                   m.Timestamp
-            FROM Message m
-            JOIN [User] u ON m.SenderID = u.UserID
-            WHERE m.RecipientID = @RecipientID";
+        SELECT m.MessageID, 
+               u.FirstName + ' ' + u.LastName AS SenderName, 
+               m.Subject, 
+               m.Body,  
+               m.Timestamp
+        FROM Message m
+        LEFT JOIN [User] u ON m.SenderID = u.UserID
+        WHERE m.RecipientID = @RecipientID";
 
             if (senderID.HasValue)
             {
@@ -915,7 +916,7 @@ public class DBClass
         {
             conn.Open();
 
-            string query = @"INSERT INTO [Grant] 
+            string query = @"INSERT INTO [GrantApplication] 
                                (Category, GrantName, FundingSource, SubmissionDate, AwardDate, Amount, LeadFacultyID, BusinessPartnerID, Status)
                                VALUES (@Category, @GrantName, @FundingSource, @SubmissionDate, @AwardDate, @Amount, @LeadFacultyID, @BusinessPartnerID, @Status)";
 
